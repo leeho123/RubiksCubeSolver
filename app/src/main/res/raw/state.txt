@@ -1,0 +1,30 @@
+Top
+B B B
+B B B
+B B B
+
+Bottom
+G G G
+G G G
+G G G
+
+Front
+R R R
+R R R
+R R R
+
+Right
+Y Y Y
+Y Y Y
+Y Y Y
+
+Left
+W W W
+W W W
+W W W
+
+Back
+O O O
+O O O
+O O O
+
