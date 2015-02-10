@@ -5,7 +5,7 @@ import java.lang.StringBuilder;
  */
 public class Square {
     public enum Colour {
-        RED,BLUE,GREEN,YELLOW,WHITE,ORANGE;
+        RED,BLUE,GREEN,YELLOW,WHITE,ORANGE,UNKNOWN;
 
         public static Colour opposite(Colour colour){
             switch(colour){

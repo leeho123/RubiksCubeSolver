@@ -39,4 +39,11 @@
         android:textOff="AntiClockwise"
         android:layout_below="@id/b"
         android:onClick="onToggleClicked"/>
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/togglebutton"
+        android:text="Capture State"
+        android:id="@+id/cap"/>
 </RelativeLayout>
