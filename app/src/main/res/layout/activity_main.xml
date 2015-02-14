@@ -5,31 +5,8 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     android:paddingBottom="@dimen/activity_vertical_margin" tools:context=".MainActivity">
 
-    <Button
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" android:text="U" android:id="@+id/test"/>
 
-    <Button
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/test" android:text="D" android:id="@+id/d"/>
 
-    <Button
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/d" android:text="R" android:id="@+id/r"/>
-    <Button
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/r" android:text="L" android:id="@+id/l"/>
-    <Button
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/l" android:text="F" android:id="@+id/f"/>
-    <Button
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/f" android:text="B" android:id="@+id/b"/>
 
     <ToggleButton
         android:id="@+id/togglebutton"
@@ -37,13 +14,43 @@
         android:layout_height="wrap_content"
         android:textOn="Clockwise"
         android:textOff="AntiClockwise"
-        android:layout_below="@id/b"
         android:onClick="onToggleClicked"/>
 
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/togglebutton"
-        android:text="Capture State"
-        android:id="@+id/cap"/>
+        android:text="Capture Front"
+        android:id="@+id/capfront"></Button>
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/capfront"
+        android:text="Capture Top"
+        android:id="@+id/captop"/>
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/captop"
+        android:text="Capture Left"
+        android:id="@+id/capleft"/>
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/capleft"
+        android:text="Capture Right"
+        android:id="@+id/capright"/>
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/capright"
+        android:text="Capture Back"
+        android:id="@+id/capback"/>
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/capback"
+        android:text="Capture Bottom"
+        android:id="@+id/capbottom"/>
+
 </RelativeLayout>

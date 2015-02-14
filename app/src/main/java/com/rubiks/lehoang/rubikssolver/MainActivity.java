@@ -33,120 +33,73 @@ public class MainActivity extends Activity {
     private Uri fileUri;
 
     public static final int MEDIA_TYPE_IMAGE = 1;
+    public static final String FACE = "com.rubiks.lehoang.face";
+
+    public void setupAndSendIntent(String face){
+        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        fileUri = Uri.fromFile(getOutputMediaFile(MEDIA_TYPE_IMAGE));
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri);
+        intent.putExtra(MediaStore.EXTRA_SCREEN_ORIENTATION, ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        intent.putExtra(FACE, face);
+        startActivityForResult(intent, 100);
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Button testButton = (Button) findViewById(R.id.test);
-        Button dButton = (Button) findViewById(R.id.d);
-        Button r = (Button) findViewById(R.id.r);
-        Button l = (Button) findViewById(R.id.l);
-        Button f = (Button) findViewById(R.id.f);
-        Button b = (Button) findViewById(R.id.b);
-        ToggleButton clockwise = (ToggleButton) findViewById(R.id.togglebutton);
-        Button capture = (Button) findViewById(R.id.cap);
-        clockwise.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                isClockwise = ((ToggleButton) v).isChecked();
-            }
-        });
+
+        Button captureTop = (Button) findViewById(R.id.captop);
+        Button captureFront = (Button) findViewById(R.id.capfront);
+        Button captureBottom = (Button) findViewById(R.id.capbottom);
+        Button captureBack = (Button) findViewById(R.id.capback);
+        Button captureLeft = (Button) findViewById(R.id.capleft);
+        Button captureRight = (Button) findViewById(R.id.capright);
 
         try {
             cube = new Cube("state.txt", MainActivity.this.getApplicationContext());
 
-
-            testButton.setOnClickListener(new View.OnClickListener() {
+            captureBottom.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    try {
-
-                        cube.performSequence("U" + (isClockwise ? "" : "'"));
-                        Util.LogDebug(cube.toString());
-                    }catch (Exception e){
-
-                        Util.LogError(Log.getStackTraceString(e));
-                        Util.LogError("SUMMAT WENT WRONG BRUH");
-                    }
+                    setupAndSendIntent("BOTTOM");
                 }
             });
 
-            r.setOnClickListener(new View.OnClickListener() {
+            captureLeft.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    try{
-                        cube.performSequence("R" + (isClockwise ? "" : "'"));
-                        Util.LogDebug(cube.toString());
-                    }catch (Exception e){
-                        Util.LogError(Log.getStackTraceString(e));
-                        Util.LogError("SUMMAT WENT WRONG BRUH");
-                    }
+                    setupAndSendIntent("LEFT");
                 }
             });
 
-            f.setOnClickListener(new View.OnClickListener() {
+            captureRight.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    try {
-                        cube.performSequence("F" + (isClockwise ? "" : "'"));
-                        Util.LogDebug(cube.toString());
-                    } catch (Exception e) {
-                        Util.LogError(Log.getStackTraceString(e));
-                        Util.LogError("SUMMAT WENT WRONG BRUH");
-                    }
+                    setupAndSendIntent("RIGHT");
                 }
             });
 
-            b.setOnClickListener(new View.OnClickListener() {
+            captureBack.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    try {
-                        cube.performSequence("B" + (isClockwise ? "" : "'"));
-                        Util.LogDebug(cube.toString());
-                    } catch (Exception e) {
-                        Util.LogError(Log.getStackTraceString(e));
-                        Util.LogError("SUMMAT WENT WRONG BRUH");
-                    }
+                    setupAndSendIntent("BACK");
                 }
             });
 
-            l.setOnClickListener(new View.OnClickListener() {
+            captureTop.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    try {
-                        cube.performSequence("L" + (isClockwise ? "" : "'"));
-                        Util.LogDebug(cube.toString());
-                    } catch (Exception e) {
-                        Util.LogError(Log.getStackTraceString(e));
-                        Util.LogError("SUMMAT WENT WRONG BRUH");
-                    }
+                    setupAndSendIntent("TOP");
                 }
             });
-
-            dButton.setOnClickListener(new View.OnClickListener() {
+            captureFront.setOnClickListener(new View.OnClickListener(){
                 @Override
-                public void onClick(View v) {
-                    try{
-                        cube.performSequence("D" + (isClockwise ? "" : "'"));
-                        Util.LogDebug(cube.toString());
-                    }catch (Exception e){
-                        Util.LogError(Log.getStackTraceString(e));
-                        Util.LogError("SUMMAT WENT WRONG BRUH");
-                    }
+                public void onClick(View v){
+                    setupAndSendIntent("FRONT");
                 }
             });
 
 
-            capture.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                    fileUri = Uri.fromFile(getOutputMediaFile(MEDIA_TYPE_IMAGE));
-                    intent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri);
-                    intent.putExtra(MediaStore.EXTRA_SCREEN_ORIENTATION, ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-                    startActivityForResult(intent, 100);
-                }
-            });
         }catch (Exception e){
 
             Util.LogError(Log.getStackTraceString(e));
@@ -224,7 +177,7 @@ public class MainActivity extends Activity {
                     int[] topLeft = new int[bitmap.getWidth()*bitmap.getWidth()];
                     int[] topMid = new int[bitmap.getWidth()*bitmap.getWidth()];
                     Square.Colour[][] face = new Square.Colour[3][3];
-
+                    String faceString = data.getStringExtra(FACE);
                     int start = bitmap.getWidth()/6;
                     int increment = bitmap.getWidth()/3;
                     for(int i = 0 ; i < 3; i++){
