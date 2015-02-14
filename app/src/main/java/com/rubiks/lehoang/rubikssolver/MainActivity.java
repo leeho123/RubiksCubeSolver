@@ -189,16 +189,21 @@ public class MainActivity extends Activity {
 
             Util.LogDebug(hsb[0]+"");
             float deg = hsb[0];
+            int shift = 0;
+            //use phase shift?
 
-            if      (deg >=   0 && deg <  15) return Square.Colour.RED;
-            else if (deg >=  15 && deg <  40) return Square.Colour.ORANGE;
-            else if (deg >=  40 && deg <  90) return Square.Colour.YELLOW;
-            else if (deg >=  90 && deg < 165) return Square.Colour.GREEN;
-            else if (deg >= 165 && deg < 195) return hsb[2] > 0.7 ? Square.Colour.WHITE : Square.Colour.UNKNOWN;
-            else if (deg >= 195 && deg < 270) return Square.Colour.BLUE;
-            else if (deg >= 270 && deg < 330) return Square.Colour.UNKNOWN;
-            else return Square.Colour.RED;
+
+            if      (deg >=   (0+shift)%360 && deg <  (15+shift)%360) return Square.Colour.RED;
+            else if (deg >=  (15+shift)%360 && deg <  (40+shift)%360) return Square.Colour.ORANGE;
+            else if (deg >=  (40+shift)%360 && deg <  (90+shift)%360) return Square.Colour.YELLOW;
+            else if (deg >=  (90+shift)%360 && deg < (165+shift)%360) return Square.Colour.GREEN;
+            else if (deg >= (165+shift)%360 && deg < (195+shift)%360) return hsb[2] > 0.7 ? Square.Colour.WHITE : Square.Colour.UNKNOWN;
+            else if (deg >= (195+shift)%360 && deg < (270+shift)%360) return Square.Colour.BLUE;
+            else if (deg >= (270+shift)%360 && deg < (330+shift)%360) return Square.Colour.UNKNOWN;
+            else if (deg >= (330+shift)%360 && deg < (360+shift)) return Square.Colour.RED;
+            else return Square.Colour.UNKNOWN;
         }
+
     }
     
     @Override
@@ -222,14 +227,18 @@ public class MainActivity extends Activity {
 
                     int start = bitmap.getWidth()/6;
                     int increment = bitmap.getWidth()/3;
-                    for(int i = 0 ; i < 3; i--){
-                        for(int j = 0; j < 3;j--){
-                            bitmap.getPixels(topLeft, 0, bitmap.getWidth(),start + j*increment, start+i*increment,20,20);
+                    for(int i = 0 ; i < 3; i++){
+                        for(int j = 0; j < 3;j++){
+                            topLeft = new int[bitmap.getWidth()*bitmap.getWidth()];
+                            bitmap.getPixels(topLeft, 0, bitmap.getWidth(),start + j*increment, start+i*increment,50,50);
                             face[i][j] = getColour(topLeft);
+                            Util.LogDebug(face[i][j].toString());
                         }
                     }
 
+                    Util.addFaceToConfig("config.txt", "Top", face, this);
 
+                    Util.printConfigFile("config.txt", this);
 
                 }catch (NullPointerException e){
 

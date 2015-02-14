@@ -26,6 +26,9 @@ public class Square {
             }
         }
 
+        public static char ColourToLetter(Colour c){
+            return c.toString().charAt(0);
+        }
         public static Colour letterToColour(char c){
             char upper = Character.toUpperCase(c);
 

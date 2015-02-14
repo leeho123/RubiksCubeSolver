@@ -66,9 +66,11 @@ public class Cube {
      * @throws IOException
      */
     private void extractFaces(String filename) throws IOException, Exception{
+
         BufferedReader br = new BufferedReader(
                         new InputStreamReader(context.getResources().openRawResource(R.raw.state)));
-
+        /*BufferedReader br = new BufferedReader(
+                new InputStreamReader(context.openFileInput(filename)));*/
         Square.Colour topCol;
         Square.Colour leftCol;
         Square.Colour rightCol;
