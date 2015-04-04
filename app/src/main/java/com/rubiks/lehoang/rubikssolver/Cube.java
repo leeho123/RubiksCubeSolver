@@ -11,12 +11,15 @@ import java.io.InputStreamReader;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by LeHoang on 02/01/2015.
  */
-public class Cube {
+public class Cube implements Iterable<Cube>{
 
     private int size;
     private Face back;
@@ -25,6 +28,42 @@ public class Cube {
     private Face bottom;
     private Face right;
     private Face left;
+
+    public static String BACK_FACE = "back";
+    public static String FRONT_FACE = "front";
+    public static String RIGHT_FACE = "right";
+    public static String LEFT_FACE = "left";
+    public static String TOP_FACE = "top";
+    public static String BOTTOM_FACE = "bottom";
+
+    private Map<String, Face> faceMap = new HashMap<String, Face>();
+
+    public Iterator iterator(){
+        return new CubeIterator();
+    }
+
+    private class CubeIterator implements Iterator<Face>{
+        Face[] faces = {top, right, front, bottom, left, back};
+        int counter = 0;
+
+        @Override
+        public boolean hasNext() {
+            return counter < faces.length;
+        }
+
+        @Override
+        public Face next() {
+            Face toReturn = faces[counter];
+            counter++;
+            return toReturn;
+        }
+
+        @Override
+        public void remove() {
+
+        }
+    }
+
     private Context context;
     /**
      * Takes a config file to build cube representation
@@ -51,9 +90,18 @@ public class Cube {
         this.context = context;
         extractFaces(filename);
 
+
+        faceMap.put(BACK_FACE, back);
+        faceMap.put(FRONT_FACE, front);
+        faceMap.put(RIGHT_FACE, right);
+        faceMap.put(LEFT_FACE, left);
+        faceMap.put(BOTTOM_FACE, bottom);
+        faceMap.put(TOP_FACE, top);
     }
 
-
+    public Face getFace(String face){
+        return faceMap.get(face);
+    }
     public boolean isSolved(){
         return front.isSolved() && back.isSolved() && top.isSolved() &&
                 bottom.isSolved() && right.isSolved() && left.isSolved();
@@ -323,6 +371,17 @@ public class Cube {
             bottomRow = bottom;
         }
 
+        public Row getTopRow(){
+            return topRow;
+        }
+
+        public Row getCentreRow(){
+            return centreRow;
+        }
+
+        public Row getBottomRow() {
+            return bottomRow;
+        }
 
         public Face flipX(){
             return new Face(bottomRow, centreRow, topRow);
@@ -385,6 +444,18 @@ public class Cube {
             this.left = left;
             this.right = right;
             this.centre = centre;
+        }
+
+        public Square getLeft(){
+            return left;
+        }
+
+        public Square getRight(){
+            return right;
+        }
+
+        public Square getCentre(){
+            return centre;
         }
 
         public Row flip(){

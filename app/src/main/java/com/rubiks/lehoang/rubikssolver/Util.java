@@ -1,6 +1,7 @@
 package com.rubiks.lehoang.rubikssolver;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.util.Log;
 
 import java.io.BufferedReader;
@@ -9,6 +10,8 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by LeHoang on 04/01/2015.
@@ -63,4 +66,37 @@ public class Util {
             e.printStackTrace();
         }
     }
+
+    public static Map<Square.Colour, String> getColourFaceMap(Cube cube){
+        Map<Square.Colour, String> colourToFace = new HashMap<Square.Colour, String>();
+
+        colourToFace.put(cube.getFace(Cube.BACK_FACE).getFaceColour(),"B");
+        colourToFace.put(cube.getFace(Cube.FRONT_FACE).getFaceColour(),"F");
+        colourToFace.put(cube.getFace(Cube.RIGHT_FACE).getFaceColour(),"R");
+        colourToFace.put(cube.getFace(Cube.LEFT_FACE).getFaceColour(),"L");
+        colourToFace.put(cube.getFace(Cube.TOP_FACE).getFaceColour(),"U");
+        colourToFace.put(cube.getFace(Cube.BOTTOM_FACE).getFaceColour(),"D");
+
+        return colourToFace;
+    }
+
+    public static String myCubeToKociemba(Cube cube){
+        StringBuilder kociemba = new StringBuilder();
+        Map<Square.Colour, String> colourToFace = getColourFaceMap(cube);
+
+        Cube.Face top = cube.getFace(Cube.TOP_FACE);
+
+        Cube.Row topRow = top.getTopRow();
+        kociemba.append(colourToFace.get(topRow.getLeft().getColour()));
+        kociemba.append(colourToFace.get(topRow.getCentre().getColour()));
+        kociemba.append(colourToFace.get(topRow.getRight().getColour()));
+
+        Cube.Row middleRow = top.getCentreRow();
+        kociemba.append(colourToFace.get(middleRow.getLeft().getColour()));
+        kociemba.append(colourToFace.get(middleRow.getCentre().getColour()));
+        kociemba.append(colourToFace.get(middleRow.getRight().getColour()));
+
+        return null;
+    }
+
 }
