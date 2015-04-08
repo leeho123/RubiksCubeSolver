@@ -18,7 +18,7 @@ import java.util.Map;
  */
 public class Util {
 
-    private static final String LOG_TAG = "com.rubiks.lehoang.rubikssolver";
+    private static final String LOG_TAG = "com.lehoang.rubikssolve";
 
     public static void LogError(String message){
         Log.e(LOG_TAG, message);
@@ -81,22 +81,37 @@ public class Util {
     }
 
     public static String myCubeToKociemba(Cube cube){
+
         StringBuilder kociemba = new StringBuilder();
         Map<Square.Colour, String> colourToFace = getColourFaceMap(cube);
 
-        Cube.Face top = cube.getFace(Cube.TOP_FACE);
+        /**
+         * Face[] faces = {top, right, front, bottom, left, back};
+         */
+        int count = 0;
+        for(Cube.Face face : cube){
+            Cube.Face conv = face;
 
-        Cube.Row topRow = top.getTopRow();
-        kociemba.append(colourToFace.get(topRow.getLeft().getColour()));
-        kociemba.append(colourToFace.get(topRow.getCentre().getColour()));
-        kociemba.append(colourToFace.get(topRow.getRight().getColour()));
+            // Odd faces need to be flipped
+            if(count % 2 == 1) {
+                if (count == 3) {
+                    //Bottom
+                    conv = face.flipX();
+                } else {
+                    //right and back
+                    conv = face.flipY();
+                }
+            }
 
-        Cube.Row middleRow = top.getCentreRow();
-        kociemba.append(colourToFace.get(middleRow.getLeft().getColour()));
-        kociemba.append(colourToFace.get(middleRow.getCentre().getColour()));
-        kociemba.append(colourToFace.get(middleRow.getRight().getColour()));
+            for(Square square : conv){
+                kociemba.append(colourToFace.get(square.getColour()));
+            }
 
-        return null;
+            count++;
+        }
+
+
+        return kociemba.toString();
     }
 
 }

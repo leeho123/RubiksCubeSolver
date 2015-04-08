@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -19,7 +20,7 @@ import java.util.Map;
 /**
  * Created by LeHoang on 02/01/2015.
  */
-public class Cube implements Iterable<Cube>{
+public class Cube implements Iterable<Cube.Face>{
 
     private int size;
     private Face back;
@@ -38,7 +39,7 @@ public class Cube implements Iterable<Cube>{
 
     private Map<String, Face> faceMap = new HashMap<String, Face>();
 
-    public Iterator iterator(){
+    public Iterator<Face> iterator(){
         return new CubeIterator();
     }
 
@@ -64,7 +65,6 @@ public class Cube implements Iterable<Cube>{
         }
     }
 
-    private Context context;
     /**
      * Takes a config file to build cube representation
      *
@@ -87,10 +87,13 @@ public class Cube implements Iterable<Cube>{
      * @param filename
      */
     public Cube(String filename, Context context) throws IOException, Exception{
-        this.context = context;
-        extractFaces(filename);
+        BufferedReader br = new BufferedReader(
+                new InputStreamReader(context.getResources().openRawResource(R.raw.state)));
+        extractFaces(br);
+        faceMapInit();
+    }
 
-
+    private void faceMapInit(){
         faceMap.put(BACK_FACE, back);
         faceMap.put(FRONT_FACE, front);
         faceMap.put(RIGHT_FACE, right);
@@ -99,24 +102,24 @@ public class Cube implements Iterable<Cube>{
         faceMap.put(TOP_FACE, top);
     }
 
+    public Cube(BufferedReader br) throws IOException, Exception{
+        extractFaces(br);
+        faceMapInit();
+    }
+
     public Face getFace(String face){
         return faceMap.get(face);
     }
+
     public boolean isSolved(){
         return front.isSolved() && back.isSolved() && top.isSolved() &&
                 bottom.isSolved() && right.isSolved() && left.isSolved();
     }
 
-    /**
-     * Parse the given file for configs
-     * @param filename
-     * @return
-     * @throws IOException
-     */
-    private void extractFaces(String filename) throws IOException, Exception{
 
-        BufferedReader br = new BufferedReader(
-                        new InputStreamReader(context.getResources().openRawResource(R.raw.state)));
+    private void extractFaces(BufferedReader br) throws IOException, Exception{
+
+
         /*BufferedReader br = new BufferedReader(
                 new InputStreamReader(context.openFileInput(filename)));*/
         Square.Colour topCol;
@@ -164,7 +167,6 @@ public class Cube implements Iterable<Cube>{
 
     public void performMove(Turn turn) throws Exception{
 
-        Util.LogDebug("Performing move: " + turn.getMove().toString() );
         Face faceToRotate = null;
 
         Face newFrontFace = null;
@@ -250,8 +252,6 @@ public class Cube implements Iterable<Cube>{
 
         if(faceToRotate != null) {
             faceToRotate.rotate(clockwise);
-        }else{
-            Util.LogDebug("No face to rotate");
         }
 
         front = newFrontFace;
@@ -311,12 +311,9 @@ public class Cube implements Iterable<Cube>{
                     moves.addFirst(turn);
                     break;
                 default:
-                    Util.LogError("Parsing in performSequence()", "Invalid move");
                     throw new Exception("Parsing in performSequence() Invalid move");
             }
         }
-
-        Util.LogDebug("About to perform moves");
         for(Turn turn : moves){
             performMove(turn);
         }
@@ -359,7 +356,7 @@ public class Cube implements Iterable<Cube>{
         return extracted;
     }
 
-    public class Face{
+    public class Face implements Iterable<Square>{
         private Row topRow;
         private Row centreRow;
         private Row bottomRow;
@@ -383,10 +380,18 @@ public class Cube implements Iterable<Cube>{
             return bottomRow;
         }
 
+        /**
+         * Gets a X axis flipped version of the face
+         * @return
+         */
         public Face flipX(){
             return new Face(bottomRow, centreRow, topRow);
         }
 
+        /**
+         * Gets a Y axis flipped version of the face
+         * @return
+         */
         public Face flipY(){
             return new Face(topRow.flip(), centreRow.flip(), bottomRow.flip());
         }
@@ -399,17 +404,12 @@ public class Cube implements Iterable<Cube>{
         }
 
         public void rotate(boolean clockwise){
-            Util.LogDebug("Asked to rotate " + (clockwise ? "clockwise" : "anticlockwise") + " for " + getFaceColour().toString());
-            Util.LogDebug("Was : " + this.toString());
+
             Row newTopRow = null;
             Row newCentreRow = null;
             Row newBottomRow = null;
             if(clockwise){
-                Util.LogDebug(centreRow.left.toString());
-                Util.LogDebug(bottomRow.left.toString());
-                Util.LogDebug(topRow.left.toString());
                 newTopRow = new Row(bottomRow.left, centreRow.left, topRow.left);
-                Util.LogDebug("newTopRow" + newTopRow.toString());
                 newCentreRow = new Row(bottomRow.centre, centreRow.centre, topRow.centre);
                 newBottomRow = new Row(bottomRow.right, centreRow.right, topRow.right);
 
@@ -423,7 +423,6 @@ public class Cube implements Iterable<Cube>{
             centreRow = newCentreRow;
             bottomRow = newBottomRow;
 
-            Util.LogDebug("Now : " + this.toString());
         }
 
         @Override
@@ -433,8 +432,46 @@ public class Cube implements Iterable<Cube>{
                     + centreRow.toString() + "\n"
                     + bottomRow.toString() + "\n";
         }
+
+        @Override
+        public Iterator<Square> iterator() {
+            return new FaceIterator();
+        }
+
+        /**
+         * Class for iterating over a face. Goes row-wise across each row.
+         * 0 1 2
+         * 3 4 5
+         * 6 7 8
+         */
+        private class FaceIterator implements Iterator<Square>{
+            Square[] squares = {topRow.getLeft(), topRow.getCentre(), topRow.getRight(),
+                    centreRow.getLeft(), centreRow.getCentre(),centreRow.getRight(),
+                    bottomRow.getLeft(), bottomRow.getCentre(),bottomRow.getRight()};
+            int count = 0;
+            @Override
+            public boolean hasNext() {
+                return count < squares.length;
+            }
+
+            @Override
+            public Square next() {
+                Square toReturn = squares[count];
+                count++;
+                return toReturn;
+            }
+
+            @Override
+            public void remove() {
+
+            }
+        }
+
     }
 
+    /**
+     * Class for rows
+     */
     public class Row {
         private Square left;
         private Square right;

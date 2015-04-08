@@ -10,6 +10,7 @@ android {
         targetSdkVersion 19
         versionCode 1
         versionName "1.0"
+        testApplicationId "com.rubiks.lehoang.tests"
     }
     buildTypes {
         release {
@@ -17,8 +18,16 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    sourceSets{
+        main.java.srcDirs += 'src/instrumentTest/java'
+    }
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    testCompile 'junit:junit:4.+'
+    testCompile 'org.robolectric:robolectric:2.4'
+
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+    compile files('libs/twophase.jar')
+    //compile files('libs/GUI_example.jar')
 }
