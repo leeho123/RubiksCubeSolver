@@ -26,8 +26,8 @@ android {
 dependencies {
     testCompile 'junit:junit:4.+'
     testCompile 'org.robolectric:robolectric:2.4'
-
     compile fileTree(include: ['*.jar'], dir: 'libs')
     compile files('libs/twophase.jar')
     //compile files('libs/GUI_example.jar')
+    compile files('libs/GUI_example.jar')
 }

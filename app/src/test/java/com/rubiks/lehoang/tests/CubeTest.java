@@ -1,6 +1,7 @@
 package com.rubiks.lehoang.tests;
 
 import com.rubiks.lehoang.rubikssolver.Cube;
+import com.rubiks.lehoang.rubikssolver.Util;
 
 import junit.framework.Assert;
 import junit.framework.TestCase;
@@ -9,6 +10,7 @@ import org.junit.Before;
 import org.robolectric.shadows.ShadowLog;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.StringReader;
 
 /**
@@ -309,6 +311,70 @@ public class CubeTest extends TestCase {
         setConfig(config, expected, "L'UR'DBF'LBUR'LBBRR");
     }
 
+    public void testCornerEncodingSimple() throws Exception {
+        String state = Cube.SOLVED;
+
+        Cube cube = new Cube(new BufferedReader(new StringReader(state)));
+
+        String encoding = cube.encodeCorners();
+
+        String expected = "01234567";
+
+        Assert.assertEquals(expected, encoding);
+    }
+
+    public void testCornerEncodingComplex() throws Exception{
+        String state =
+                "Top\nW O G\nG B W\nO O G\n" +
+                        "Bottom\nR W B\nB G B\nO W B\n" +
+                        "Front\nG Y R\nO R Y\nG G R\n" +
+                        "Right\nY O W\nY Y B\nO W W\n"+
+                        "Left\nO Y Y\nR W B\nY R W\n"+
+                        "Back\nB G R\nG O R\nB R Y\n";
+
+        Cube cube = new Cube(new BufferedReader(new StringReader(state)));
+
+        String encoding = cube.encodeCorners();
+
+        String expected = "74256013";
+
+        Assert.assertEquals(expected, encoding);
+    }
+
+    public void testFirstEdgeEncodingComplex() throws Exception{
+        String state = "Top\nW O G\nG B W\nO O G\n" +
+                "Bottom\nR W B\nB G B\nO W B\n" +
+                "Front\nG Y R\nO R Y\nG G R\n" +
+                "Right\nY O W\nY Y B\nO W W\n"+
+                "Left\nO Y Y\nR W B\nY R W\n"+
+                "Back\nB G R\nG O R\nB R Y\n";
+
+        Cube cube = new Cube(new BufferedReader(new StringReader(state)));
+
+        String encoding = cube.encodeFirstEdges();
+
+        String expected = "ifekjl";
+
+        Assert.assertEquals(expected, encoding);
+    }
+
+    public void testSecondEdgeEncodingComplex() throws Exception{
+        String state = "Top\nW O G\nG B W\nO O G\n" +
+                "Bottom\nR W B\nB G B\nO W B\n" +
+                "Front\nG Y R\nO R Y\nG G R\n" +
+                "Right\nY O W\nY Y B\nO W W\n"+
+                "Left\nO Y Y\nR W B\nY R W\n"+
+                "Back\nB G R\nG O R\nB R Y\n";
+
+        Cube cube = new Cube(new BufferedReader(new StringReader(state)));
+
+        String encoding = cube.encodeSecondEdges();
+
+        String expected = "dgahcb";
+
+        Assert.assertEquals(expected, encoding);
+    }
+
     public void setConfig(String given, String expected, String sequence){
         Cube cube = null;
         Cube expectedCube = null;
@@ -326,5 +392,39 @@ public class CubeTest extends TestCase {
         }
 
         Assert.assertEquals(expectedCube.toString(), cube.toString());
+    }
+
+    public void testBaseConversion(){
+        int base10 = (int) Util.base12to10("gkjadf");
+        int expected = 1715945;
+
+        Assert.assertEquals(expected, base10);
+    }
+
+    public void testBaseConversionBig(){
+        int base10 = (int) Util.base12to10("lkjihg");
+        int expected = 2961306;
+
+        Assert.assertEquals(expected, base10);
+    }
+
+    public void testForNoDups(){
+
+        int base10 = (int) Util.base12to10("abcdef");
+        int base102= (int) Util.base12to10("abcdeg");
+        int base103= (int) Util.base12to10("abcdeh");
+        int base104= (int) Util.base12to10("abcdei");
+        int base105= (int) Util.base12to10("abcdel");
+
+        int base106= (int) Util.base12to10("abcdfe");
+
+
+        System.out.println(base10);
+        System.out.println(base102);
+        System.out.println(base103);
+        System.out.println(base104);
+        System.out.println(base105);
+        System.out.println(base106);
+
     }
 }

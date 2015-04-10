@@ -4,6 +4,8 @@ import android.content.Context;
 import android.graphics.Color;
 import android.util.Log;
 
+import org.kociemba.twophase.Search;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileInputStream;
@@ -114,4 +116,38 @@ public class Util {
         return kociemba.toString();
     }
 
+    public static long base12to10(String sequence){
+        long base10Sequence = 0;
+        for(int i = sequence.length()-1; i >= 0 ; i--){
+            char unit = sequence.charAt(i);
+
+            int expo = unit - 'a';
+            int unitBase10 = (int) (expo* Math.pow(12, (sequence.length() - 1 - i)));
+            base10Sequence += unitBase10;
+        }
+
+        return base10Sequence;
+    }
+
+    public static String solveCubeUsingKociemba(Cube cube){
+        int maxDepth = 24, maxTime = 5;
+        boolean useSeparator = false;
+        String setup = Util.myCubeToKociemba(cube);
+
+        String result = Search.solution(setup, maxDepth, maxTime, useSeparator);
+        result = result.replaceAll("\\s+", "");
+        return result;
+    }
+
+    public static int max(int[] array){
+        int max = -1;
+
+        for(int val: array){
+            if(val > max){
+                max= val;
+            }
+        }
+
+        return max;
+    }
 }
