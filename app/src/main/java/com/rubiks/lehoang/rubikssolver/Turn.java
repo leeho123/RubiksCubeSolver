@@ -34,5 +34,17 @@ public class Turn {
             }
             return null;
         }
+
+        /**
+         * Inverts a sequence
+         * @param s
+         * @return
+         */
+        public static String invert(String s){
+            //TODO
+            return null;
+        }
+
+
     }
 }
