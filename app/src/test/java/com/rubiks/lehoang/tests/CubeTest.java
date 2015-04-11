@@ -1,6 +1,7 @@
 package com.rubiks.lehoang.tests;
 
 import com.rubiks.lehoang.rubikssolver.Cube;
+import com.rubiks.lehoang.rubikssolver.Square;
 import com.rubiks.lehoang.rubikssolver.Util;
 
 import junit.framework.Assert;
@@ -12,6 +13,10 @@ import org.robolectric.shadows.ShadowLog;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
+
+import static com.rubiks.lehoang.rubikssolver.Cube.*;
+import static com.rubiks.lehoang.rubikssolver.Square.Colour;
 
 /**
  * Created by LeHoang on 07/04/2015.
@@ -312,7 +317,7 @@ public class CubeTest extends TestCase {
     }
 
     public void testCornerEncodingSimple() throws Exception {
-        String state = Cube.SOLVED;
+        String state = SOLVED;
 
         Cube cube = new Cube(new BufferedReader(new StringReader(state)));
 
@@ -341,23 +346,26 @@ public class CubeTest extends TestCase {
         Assert.assertEquals(expected, encoding);
     }
 
-    public void testFirstEdgeEncodingComplex() throws Exception{
+    public void testFirstEdgeEncodingComplex() throws Exception {
         String state = "Top\nW O G\nG B W\nO O G\n" +
                 "Bottom\nR W B\nB G B\nO W B\n" +
                 "Front\nG Y R\nO R Y\nG G R\n" +
-                "Right\nY O W\nY Y B\nO W W\n"+
-                "Left\nO Y Y\nR W B\nY R W\n"+
+                "Right\nY O W\nY Y B\nO W W\n" +
+                "Left\nO Y Y\nR W B\nY R W\n" +
                 "Back\nB G R\nG O R\nB R Y\n";
 
         Cube cube = new Cube(new BufferedReader(new StringReader(state)));
 
-        String encoding = cube.encodeFirstEdges();
+        String encoding = cube.encode(Cube.firstEdges);
 
-        String expected = "ifekjl";
+        // BY RY BO GR OY RW
+        // 8 2 6 7 0 3
+
+        String expected = "icghad";
+
 
         Assert.assertEquals(expected, encoding);
     }
-
     public void testSecondEdgeEncodingComplex() throws Exception{
         String state = "Top\nW O G\nG B W\nO O G\n" +
                 "Bottom\nR W B\nB G B\nO W B\n" +
@@ -368,9 +376,11 @@ public class CubeTest extends TestCase {
 
         Cube cube = new Cube(new BufferedReader(new StringReader(state)));
 
-        String encoding = cube.encodeSecondEdges();
+        String encoding = cube.encode(Cube.secondEdges);
 
-        String expected = "dgahcb";
+        //OG GW OW GY BW BR
+        // 5 11 1 10 9 4
+        String expected = "flbkje";
 
         Assert.assertEquals(expected, encoding);
     }
@@ -408,23 +418,21 @@ public class CubeTest extends TestCase {
         Assert.assertEquals(expected, base10);
     }
 
-    public void testForNoDups(){
 
-        int base10 = (int) Util.base12to10("abcdef");
-        int base102= (int) Util.base12to10("abcdeg");
-        int base103= (int) Util.base12to10("abcdeh");
-        int base104= (int) Util.base12to10("abcdei");
-        int base105= (int) Util.base12to10("abcdel");
+    public void testIsSolved() throws Exception {
+        String expected =
+                "Top\nB B B\nB B B\nB B B\n" +
+                        "Bottom\nG G G\nG G G\nG G G\n" +
+                        "Front\nY Y Y\nR R R\nR R R\n" +
+                        "Right\nO O O\nY Y Y\nY Y Y\n"+
+                        "Left\nR R R\nW W W\nW W W\n"+
+                        "Back\nW W W\nO O O\nO O O\n";
 
-        int base106= (int) Util.base12to10("abcdfe");
+        Cube cube = new Cube(new BufferedReader(new StringReader(expected)));
 
-
-        System.out.println(base10);
-        System.out.println(base102);
-        System.out.println(base103);
-        System.out.println(base104);
-        System.out.println(base105);
-        System.out.println(base106);
-
+        Assert.assertEquals(false, cube.isSolved());
     }
+
+
+
 }

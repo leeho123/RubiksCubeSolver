@@ -150,4 +150,12 @@ public class Util {
 
         return max;
     }
+
+    public static void order(char[] arr){
+        if(arr[0] > arr[1]){
+            char temp = arr[0];
+            arr[0] = arr[1];
+            arr[1] = temp;
+        }
+    }
 }
