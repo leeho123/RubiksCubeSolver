@@ -5,6 +5,9 @@ import android.content.Context;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Deque;
@@ -41,7 +44,6 @@ public class Cube implements Iterable<Cube.Face>{
         return new CubeIterator();
     }
 
-
     public static String SOLVED = "Top\nB B B\nB B B\nB B B\n" +
             "Bottom\nG G G\nG G G\nG G G\n" +
             "Front\nR R R\nR R R\nR R R\n" +
@@ -65,25 +67,83 @@ public class Cube implements Iterable<Cube.Face>{
         return map;
     }
 
-    private static Map<String, Character> edgeMap = initEdgeMap();
-
-    private static Map<String, Character> initEdgeMap(){
-        Map<String, Character> map = new HashMap<String, Character>();
-        map.put("BW", 'a');
-        map.put("RW", 'b');
-        map.put("GW", 'c');
-        map.put("OW", 'd');
-        map.put("BR", 'e');
-        map.put("BO", 'f');
-        map.put("BY", 'g');
-        map.put("RY", 'h');
-        map.put("GY", 'i');
-        map.put("OY", 'j');
-        map.put("GR", 'k');
-        map.put("GO", 'l');
-        return map;
+    public enum Edge{
+        OY,OW,RY,RW,BR,GO,
+        BO,GR,BY,BW,GY,GW;
     }
 
+    public static Edge[] firstEdges = {Edge.RY, Edge.OY, Edge.RW, Edge.OW, Edge.BR, Edge.GO};
+    public static Edge[] secondEdges = {Edge.BO, Edge.GR, Edge.BY, Edge.BW, Edge.GY, Edge.GW};
+
+    public Edge getEdgeColour(Edge edge){
+        char[] edgeChar = new char[2];
+        switch(edge){
+            case OY:
+                //BR
+                edgeChar[0] = Square.Colour.ColourToLetter(back.getCentreRow().getRight().getColour());
+                edgeChar[1] = Square.Colour.ColourToLetter(right.getCentreRow().getLeft().getColour());
+                break;
+            case OW:
+                //BL
+                edgeChar[0] = Square.Colour.ColourToLetter(back.getCentreRow().getLeft().getColour());
+                edgeChar[1] = Square.Colour.ColourToLetter(left.getCentreRow().getLeft().getColour());
+                break;
+            case RY:
+                //FR
+                edgeChar[0] = Square.Colour.ColourToLetter(front.getCentreRow().getRight().getColour());
+                edgeChar[1] = Square.Colour.ColourToLetter(right.getCentreRow().getRight().getColour());
+                break;
+            case GO:
+                //BD
+                edgeChar[0] = Square.Colour.ColourToLetter(bottom.getTopRow().getCentre().getColour());
+                edgeChar[1] = Square.Colour.ColourToLetter(back.getBottomRow().getCentre().getColour());
+                break;
+            case BO:
+                //UB
+                edgeChar[0] = Square.Colour.ColourToLetter(top.getTopRow().getCentre().getColour());
+                edgeChar[1] = Square.Colour.ColourToLetter(back.getTopRow().getCentre().getColour());
+                break;
+            case GR:
+                //FD
+                edgeChar[0] = Square.Colour.ColourToLetter(bottom.getBottomRow().getCentre().getColour());
+                edgeChar[1] = Square.Colour.ColourToLetter(front.getBottomRow().getCentre().getColour());
+                break;
+            case BY:
+                //RU
+                edgeChar[0] = Square.Colour.ColourToLetter(top.getCentreRow().getRight().getColour());
+                edgeChar[1] = Square.Colour.ColourToLetter(right.getTopRow().getCentre().getColour());
+                break;
+            case BW:
+                //UL
+                edgeChar[0] = Square.Colour.ColourToLetter(top.getCentreRow().getLeft().getColour());
+                edgeChar[1] = Square.Colour.ColourToLetter(left.getTopRow().getCentre().getColour());
+                break;
+            case GY:
+                //DR
+                edgeChar[0] = Square.Colour.ColourToLetter(bottom.getCentreRow().getRight().getColour());
+                edgeChar[1] = Square.Colour.ColourToLetter(right.getBottomRow().getCentre().getColour());
+                break;
+            case RW:
+                //FL
+                edgeChar[0] = Square.Colour.ColourToLetter(front.getCentreRow().getLeft().getColour());
+                edgeChar[1] = Square.Colour.ColourToLetter(left.getCentreRow().getRight().getColour());
+                break;
+            case BR:
+                //FU
+                edgeChar[0] = Square.Colour.ColourToLetter(top.getBottomRow().getCentre().getColour());
+                edgeChar[1] = Square.Colour.ColourToLetter(front.getTopRow().getCentre().getColour());
+                break;
+            case GW:
+                //DL
+                edgeChar[0] = Square.Colour.ColourToLetter(bottom.getCentreRow().getLeft().getColour());
+                edgeChar[1] = Square.Colour.ColourToLetter(left.getBottomRow().getCentre().getColour());
+                break;
+            default:
+                return null;
+        }
+        Util.order(edgeChar);
+        return Edge.valueOf(new String(edgeChar));
+    }
 
 
     /**
@@ -177,121 +237,11 @@ public class Cube implements Iterable<Cube.Face>{
         return encoding.toString();
     }
 
-    /**
-     * Gives unique encoding for first 6 edges
-     *
-     * UL
-     * FL
-     * DL
-     * BL
-     * UF
-     * UB
-     * @return
-     */
-    public String encodeFirstEdges(){
-        StringBuilder encoding = new StringBuilder();
-
-        //UL
-        char[] UL = new char[2];
-        UL[0] = Square.Colour.ColourToLetter(top.getCentreRow().getLeft().getColour());
-        UL[1] = Square.Colour.ColourToLetter(left.getTopRow().getCentre().getColour());
-        Arrays.sort(UL);
-        encoding.append(edgeMap.get(new String(UL)));
-
-        //FL
-        char[] FL = new char[2];
-        FL[0] = Square.Colour.ColourToLetter(front.getCentreRow().getLeft().getColour());
-        FL[1] = Square.Colour.ColourToLetter(left.getCentreRow().getRight().getColour());
-        Arrays.sort(FL);
-        encoding.append(edgeMap.get(new String(FL)));
-
-        //DL
-        char[] DL = new char[2];
-        DL[0] = Square.Colour.ColourToLetter(bottom.getCentreRow().getLeft().getColour());
-        DL[1] = Square.Colour.ColourToLetter(left.getBottomRow().getCentre().getColour());
-        Arrays.sort(DL);
-        encoding.append(edgeMap.get(new String(DL)));
-
-        //BL
-        char[] BL = new char[2];
-        BL[0] = Square.Colour.ColourToLetter(back.getCentreRow().getLeft().getColour());
-        BL[1] = Square.Colour.ColourToLetter(left.getCentreRow().getLeft().getColour());
-        Arrays.sort(BL);
-        encoding.append(edgeMap.get(new String(BL)));
-
-        //UF
-        char[] UF = new char[2];
-        UF[0] = Square.Colour.ColourToLetter(top.getBottomRow().getCentre().getColour());
-        UF[1] = Square.Colour.ColourToLetter(front.getTopRow().getCentre().getColour());
-        Arrays.sort(UF);
-        encoding.append(edgeMap.get(new String(UF)));
-
-        //UB
-        char[] UB = new char[2];
-        UB[0] = Square.Colour.ColourToLetter(top.getTopRow().getCentre().getColour());
-        UB[1] = Square.Colour.ColourToLetter(back.getTopRow().getCentre().getColour());
-        Arrays.sort(UB);
-        encoding.append(edgeMap.get(new String(UB)));
-
-        return encoding.toString();
-    }
-
-    /**
-     * Gives unique encoding for second set of 6 edges
-     *
-     * UR
-     * FR
-     * DR
-     * BR
-     * DF
-     * DB
-     * @return
-     */
-    public String encodeSecondEdges(){
-        StringBuilder encoding = new StringBuilder();
-
-        //UR
-        char[] UR = new char[2];
-        UR[0] = Square.Colour.ColourToLetter(top.getCentreRow().getRight().getColour());
-        UR[1] = Square.Colour.ColourToLetter(right.getTopRow().getCentre().getColour());
-        Arrays.sort(UR);
-        encoding.append(edgeMap.get(new String(UR)));
-
-        //FR
-        char[] FR = new char[2];
-        FR[0] = Square.Colour.ColourToLetter(front.getCentreRow().getRight().getColour());
-        FR[1] = Square.Colour.ColourToLetter(right.getCentreRow().getRight().getColour());
-        Arrays.sort(FR);
-        encoding.append(edgeMap.get(new String(FR)));
-
-        //DR
-        char[] DR = new char[2];
-        DR[0] = Square.Colour.ColourToLetter(bottom.getCentreRow().getRight().getColour());
-        DR[1] = Square.Colour.ColourToLetter(right.getBottomRow().getCentre().getColour());
-        Arrays.sort(DR);
-        encoding.append(edgeMap.get(new String(DR)));
-
-        //BR
-        char[] BR = new char[2];
-        BR[0] = Square.Colour.ColourToLetter(back.getCentreRow().getRight().getColour());
-        BR[1] = Square.Colour.ColourToLetter(right.getCentreRow().getLeft().getColour());
-        Arrays.sort(BR);
-        encoding.append(edgeMap.get(new String(BR)));
-
-        //DF
-        char[] DF = new char[2];
-        DF[0] = Square.Colour.ColourToLetter(bottom.getBottomRow().getCentre().getColour());
-        DF[1] = Square.Colour.ColourToLetter(front.getBottomRow().getCentre().getColour());
-        Arrays.sort(DF);
-        encoding.append(edgeMap.get(new String(DF)));
-
-        //DB
-        char[] DB = new char[2];
-        DB[0] = Square.Colour.ColourToLetter(bottom.getTopRow().getCentre().getColour());
-        DB[1] = Square.Colour.ColourToLetter(back.getBottomRow().getCentre().getColour());
-        Arrays.sort(DB);
-        encoding.append(edgeMap.get(new String(DB)));
-
+    public String encode(Edge[] edges){
+        StringBuilder encoding = new StringBuilder(12);
+        for(Edge edge : edges){
+            encoding.append((char) ('a' + getEdgeColour(edge).ordinal()));
+        }
         return encoding.toString();
     }
 
@@ -345,6 +295,13 @@ public class Cube implements Iterable<Cube.Face>{
         faceMapInit();
     }
 
+    /**
+     * For constructing a cube faaaaaast
+     * @param compactString
+     */
+    public Cube(String compactString){
+
+    }
     private void faceMapInit(){
         faceMap.put(BACK_FACE, back);
         faceMap.put(FRONT_FACE, front);
@@ -374,12 +331,8 @@ public class Cube implements Iterable<Cube.Face>{
 
         /*BufferedReader br = new BufferedReader(
                 new InputStreamReader(context.openFileInput(filename)));*/
-        Square.Colour topCol;
-        Square.Colour leftCol;
-        Square.Colour rightCol;
 
         try{
-            StringBuilder sb = new StringBuilder();
             String line = br.readLine();
 
             while(line != null){
@@ -407,14 +360,24 @@ public class Cube implements Iterable<Cube.Face>{
         }
     }
 
+    //Use only one string builder and reuse it.
+    private static StringBuilder builder = new StringBuilder();
+
     @Override
     public String toString(){
-        return "Top\n" + top.toString() +
-                "Bottom\n" + bottom.toString() +
-                "Left\n" + left.toString() +
-                "Right\n" + right.toString() +
-                "Back\n" + back.toString() +
-                "Front\n" + front.toString();
+        builder.setLength(0);
+        builder.append("Top\n").append(top.toString());
+        builder.append("Bottom\n").append(bottom.toString());
+        builder.append("Left\n").append(left.toString());
+        builder.append("Right\n").append(right.toString());
+        builder.append("Back\n").append(back.toString());
+        builder.append("Front\n").append(front.toString());
+
+        return builder.toString();
+    }
+
+    public String toCompactString(){
+
     }
 
     public void performMove(Turn turn) throws Exception{
@@ -471,17 +434,17 @@ public class Cube implements Iterable<Cube.Face>{
 
                 break;
             case R:
-                performSequence("Z'" + (clockwise ? "U" : "U'") + "Z");
+                performSequence("Z'" + (clockwise ? "U" : "U'") + 'Z');
                 return;
             case L:
                 //L is wrong
-                performSequence("Z" + (clockwise ? "U" : "U'") + "Z'");
+                performSequence('Z' + (clockwise ? "U" : "U'") + "Z'");
                 return;
             case F:
-                performSequence("X" + (clockwise ? "U" : "U'") + "X'");
+                performSequence('X' + (clockwise ? "U" : "U'") + "X'");
                 return;
             case B:
-                performSequence("X'" + (clockwise ? "U" : "U'") + "X" );
+                performSequence("X'" + (clockwise ? "U" : "U'") + 'X' );
                 return;
             case U:
                 faceToRotate = top;
@@ -649,7 +612,8 @@ public class Cube implements Iterable<Cube.Face>{
         }
 
         public boolean isSolved(){
-            return topRow.isSolved() && centreRow.isSolved() && bottomRow.isSolved();
+            return topRow.isSolved() && centreRow.isSolved() && bottomRow.isSolved() &&
+                    topRow.equals(centreRow) && centreRow.equals(bottomRow) && topRow.equals(bottomRow);
         }
         public Square.Colour getFaceColour(){
             return centreRow.centre.getColour();
@@ -679,7 +643,6 @@ public class Cube implements Iterable<Cube.Face>{
 
         @Override
         public String toString() {
-
             return topRow.toString() + "\n"
                     + centreRow.toString() + "\n"
                     + bottomRow.toString() + "\n";
@@ -753,6 +716,17 @@ public class Cube implements Iterable<Cube.Face>{
 
         public boolean isSolved(){
             return left.getColour() == right.getColour() && left.getColour() == centre.getColour() && right.getColour() == centre.getColour();
+        }
+
+        @Override
+        public boolean equals(Object row){
+            Row b = (Row) row;
+
+            boolean result = b.left.getColour() == left.getColour() &&
+                    b.right.getColour() == right.getColour() &&
+                    b.centre.getColour() == centre.getColour();
+
+            return result;
         }
 
         @Override
