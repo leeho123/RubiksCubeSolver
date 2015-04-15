@@ -1,29 +1,15 @@
 package com.rubiks.lehoang.rubikssolver.Korfs;
 
-import android.os.Environment;
+import com.rubiks.lehoang.rubikssolver.CompactCube;
 
-import com.rubiks.lehoang.rubikssolver.Cube;
-
-import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.StringReader;
 import java.io.Writer;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.PriorityQueue;
 import java.util.Queue;
-import java.util.Set;
 
 /**
  * Created by LeHoang on 08/04/2015.
@@ -34,10 +20,7 @@ public class Korfs {
     public static String FIRST_EDGE_FILE_NAME = "firstEdge.csv";
     public static String SECOND_EDGE_FILE_NAME = "secondEdge.csv";
 
-    public static Map<String, Integer> cornerMap = new HashMap<String, Integer>();
-    public static Map<String, Integer> firstEdgeMap = new HashMap<String, Integer>();
-    public static Map<String, Integer> secondEdgeMap = new HashMap<String, Integer>();
-
+/*
     public static String searchKorfs(Cube cube, int maxDepth) throws Exception {
         if(cube.isSolved()){
             System.out.println("Already solved!");
@@ -101,68 +84,54 @@ public class Korfs {
 
         return Integer.toString(minOverDepth);
     }
+*/
+    public static void generateCornerHeuristics2(File file) throws IOException {
+        Queue<CompactCube> workQueue = new ArrayDeque<CompactCube>();
 
+        //For storing all states of corners
+        int[] states = new int[88179840];
 
-
-    public static String generateCornersAndroid() throws Exception {
-        File path = Environment.getExternalStorageDirectory();
-
-        File file = new File(path,"korfs_corners.csv");
-
-        generateCornerHeuristics(file);
-
-        return file.getAbsolutePath();
-    }
-
-    public static void generateCornerHeuristics(File file) throws Exception {
-        Map<String, Integer> scoreMap = new HashMap<String, Integer>();
-
-        Queue<String> workQueue = new ArrayDeque<String>();
-
-        Cube solved = new Cube(Cube.SOLVED_COMPACT);
-        workQueue.add(Cube.SOLVED_COMPACT);
-        scoreMap.put(solved.encodeCorners(),0);
-
-        FileOutputStream solvedStream = new FileOutputStream(file);
-        try{
-            String toWrite = solved.encodeCorners()+", "+"0\n";
-            solvedStream.write(toWrite.getBytes());
-        }finally{
-            solvedStream.close();
-        }
-
-        FileOutputStream stream = new FileOutputStream(file, true);
+        workQueue.add(new CompactCube());
+        int count = 1;
         while(!workQueue.isEmpty()){
-            //Take a cube state from the work queue
-            String state = workQueue.poll();
+            CompactCube cube = workQueue.poll();
+            int moveCount = states[cube.encodeCorners()];
 
-            for(String move : Cube.moves){
-                //Create a cube from the state
-                Cube current = new Cube(state);
-                int prevScore = scoreMap.get(current.encodeCorners());
+            for(int move = 0; move < CompactCube.NUMMOVES; move++){
 
-                current.performSequence(move);
-                String encoding = current.encodeCorners();
+                CompactCube newCube = new CompactCube(cube);
+                newCube.move(move);
 
-                //Check if state has been seen before
-                if(!scoreMap.containsKey(encoding)){
-                    String newState = current.toCompactString();
+                int cornerEncoding = newCube.encodeCorners();
 
-                    //Add to worklist to be expanded
-                    workQueue.add(newState);
+                //Does not exist already and the encoding is not solved
+                if(states[cornerEncoding] == 0 && cornerEncoding != 0){
+                    count++;
+                    if(count % 1000000 == 0){
+                        System.out.println(count + " of 88179840");
+                    }
+                    workQueue.add(newCube);
 
-                    //Put in hashmap
-                    scoreMap.put(encoding, prevScore + 1);
-                    String toWrite = encoding + ", "  + (prevScore+1) + "\n";
-                    stream.write(toWrite.getBytes());
+                    states[cornerEncoding] = moveCount + 1;
                 }
             }
         }
-        stream.close();
+
+        System.out.println("Done! Writing to file...");
+        Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file)));
+        for(int i = 0; i < states.length; i++){
+            writer.write(states[i]);
+        }
+        writer.close();
+    }
+
+    public static void generateEdgeHeuristics2(File firstFile, File secondFile){
+        int[] firstStates = new int[42577920];
+        int[] secondStates = new int[42577920];
 
 
     }
-
+/*
     public static void generateEdgeHeuristics(File firstFile, File secondFile) throws Exception{
         Map<String, Integer> firstEdgeScoreMap = new HashMap<String, Integer>();
         Map<String, Integer> secondEdgeScoreMap = new HashMap<String, Integer>();
@@ -284,5 +253,32 @@ public class Korfs {
 
     public static void loadSecondEdges(File file) throws IOException {
         populateMap(file, secondEdgeMap);
+    }
+*/
+    /**
+     * Class that has 1 bit for each element. 0 if present, 1 if not.
+     */
+    class Bitset{
+        byte[] seen;
+
+
+        public Bitset(int size){
+            seen = new byte[size/8];
+        }
+
+        public void setSeen(int index){
+            byte offset = (byte) (index % 8);
+            byte mask = (byte) (256 >>> offset);
+            seen[index/8] = (byte) (seen[index/8] ^ mask);
+        }
+
+        public boolean isSeen(int index){
+            byte bucket = seen[index/8];
+            byte offset = (byte) (index % 8);
+            byte mask = (byte) (256 >>> offset);
+            byte result = (byte) (seen[index/8] & 0);
+            return result != 0;
+        }
+
     }
 }

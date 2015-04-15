@@ -309,4 +309,10 @@ public class CompactCubeTest extends TestCase {
         assertEquals(42577919, encoding);
     }
 
+    public void testencodeCorners(){
+        CompactCube cube = new CompactCube();
+        cube.move(1);
+        int encoding = cube.encodeCorners();
+
+    }
 }
