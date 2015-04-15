@@ -38,14 +38,10 @@ public class KorfTest extends TestCase {
         Korfs.generateCornerHeuristics(file);
     }
 
-    public void testKorfsFirstEdgeOnPC() throws Exception{
-        File file = new File(Korfs.FIRST_EDGE_FILE_NAME);
-        Korfs.generateFirstEdgeHeuristics(file);
-    }
-
-    public void testKorfsSecondEdgeOnPC() throws Exception{
-        File file = new File(Korfs.SECOND_EDGE_FILE_NAME);
-        Korfs.generateSecondEdgeHeuristics(file);
+    public void testKorfsEdgeOnPC() throws Exception{
+        File firstFile = new File(Korfs.FIRST_EDGE_FILE_NAME);
+        File secondFile = new File(Korfs.SECOND_EDGE_FILE_NAME);
+        Korfs.generateEdgeHeuristics(firstFile, secondFile);
     }
 
     public void testLoadCornerOnPC() throws IOException{
@@ -113,21 +109,43 @@ public class KorfTest extends TestCase {
         Korfs.loadHeuristics();
         System.out.println("Loading done");
 
-        Cube cube = new Cube(new BufferedReader(new StringReader(Cube.SOLVED)));
+        Cube cube = new Cube(Cube.SOLVED_COMPACT);
         cube.performSequence("RBLUD");
         String solution = Korfs.searchKorfs(cube, 20);
-        Assert.assertEquals("D'U'L'B'R'", solution);
+        Assert.assertEquals("U'D'L'B'R'", solution);
     }
 
-    public void testKorfSearchTenMoveSolution() throws Exception{
+    public void testKorfSearchSevenMoveSolution() throws Exception{
         System.out.println("Loading...");
         Korfs.loadHeuristics();
         System.out.println("Loading done");
 
-        Cube cube = new Cube(new BufferedReader(new StringReader(Cube.SOLVED)));
+        Cube cube = new Cube(Cube.SOLVED_COMPACT);
         cube.performSequence("RBLUDR'UL'");
         String solution = Korfs.searchKorfs(cube, 20);
         Assert.assertEquals("LU'RD'U'L'B'R'", solution);
+    }
+
+    public void testKorfSearch8MoveSolution() throws Exception{
+        System.out.println("Loading...");
+        Korfs.loadHeuristics();
+        System.out.println("Loading done");
+
+        Cube cube = new Cube(Cube.SOLVED_COMPACT);
+        cube.performSequence("RBLUDR'UL'F");
+        String solution = Korfs.searchKorfs(cube, 20);
+        Assert.assertEquals("F'LU'RD'U'L'B'R'", solution);
+    }
+
+    public void testKorfSearch10MoveSolution() throws Exception{
+        System.out.println("Loading...");
+        Korfs.loadHeuristics();
+        System.out.println("Loading done");
+
+        Cube cube = new Cube(Cube.SOLVED_COMPACT);
+        cube.performSequence("RBLUDR'UL'FDR'");
+        String solution = Korfs.searchKorfs(cube, 20);
+        Assert.assertEquals("RD'F'LU'RD'U'L'B'R'", solution);
     }
 
 }

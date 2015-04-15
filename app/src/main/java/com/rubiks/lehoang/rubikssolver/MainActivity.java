@@ -112,7 +112,7 @@ public class MainActivity extends Activity {
     }
 
 
-    private static Square.Colour getColour(int[] pixels){
+    private static Colour getColour(int[] pixels){
         int count = 0;
         int r = 0;
         int g = 0;
@@ -136,8 +136,8 @@ public class MainActivity extends Activity {
 
         Util.LogDebug("Brightness" + hsb[2]);
         Util.LogDebug("Saturation" + hsb[1]);
-        if      (hsb[1] < 0.3 && hsb[2] > 0.3) return Square.Colour.WHITE;
-        else if (hsb[2] < 0.1) return Square.Colour.UNKNOWN;
+        if      (hsb[1] < 0.3 && hsb[2] > 0.3) return Colour.WHITE;
+        else if (hsb[2] < 0.1) return Colour.UNKNOWN;
         else {
 
             Util.LogDebug(hsb[0]+"");
@@ -146,15 +146,15 @@ public class MainActivity extends Activity {
             //use phase shift?
 
 
-            if      (deg >=   (0+shift)%360 && deg <  (15+shift)%360) return Square.Colour.RED;
-            else if (deg >=  (15+shift)%360 && deg <  (40+shift)%360) return Square.Colour.ORANGE;
-            else if (deg >=  (40+shift)%360 && deg <  (90+shift)%360) return Square.Colour.YELLOW;
-            else if (deg >=  (90+shift)%360 && deg < (165+shift)%360) return Square.Colour.GREEN;
-            else if (deg >= (165+shift)%360 && deg < (195+shift)%360) return hsb[2] > 0.7 ? Square.Colour.WHITE : Square.Colour.UNKNOWN;
-            else if (deg >= (195+shift)%360 && deg < (270+shift)%360) return Square.Colour.BLUE;
-            else if (deg >= (270+shift)%360 && deg < (330+shift)%360) return Square.Colour.UNKNOWN;
-            else if (deg >= (330+shift)%360 && deg < (360+shift)) return Square.Colour.RED;
-            else return Square.Colour.UNKNOWN;
+            if      (deg >=   (0+shift)%360 && deg <  (15+shift)%360) return Colour.RED;
+            else if (deg >=  (15+shift)%360 && deg <  (40+shift)%360) return Colour.ORANGE;
+            else if (deg >=  (40+shift)%360 && deg <  (90+shift)%360) return Colour.YELLOW;
+            else if (deg >=  (90+shift)%360 && deg < (165+shift)%360) return Colour.GREEN;
+            else if (deg >= (165+shift)%360 && deg < (195+shift)%360) return hsb[2] > 0.7 ? Colour.WHITE : Colour.UNKNOWN;
+            else if (deg >= (195+shift)%360 && deg < (270+shift)%360) return Colour.BLUE;
+            else if (deg >= (270+shift)%360 && deg < (330+shift)%360) return Colour.UNKNOWN;
+            else if (deg >= (330+shift)%360 && deg < (360+shift)) return Colour.RED;
+            else return Colour.UNKNOWN;
         }
 
     }
@@ -176,7 +176,7 @@ public class MainActivity extends Activity {
                     bitmap.getPixel(100,100);
                     int[] topLeft = new int[bitmap.getWidth()*bitmap.getWidth()];
                     int[] topMid = new int[bitmap.getWidth()*bitmap.getWidth()];
-                    Square.Colour[][] face = new Square.Colour[3][3];
+                    Colour[][] face = new Colour[3][3];
                     String faceString = data.getStringExtra(FACE);
                     int start = bitmap.getWidth()/6;
                     int increment = bitmap.getWidth()/3;
