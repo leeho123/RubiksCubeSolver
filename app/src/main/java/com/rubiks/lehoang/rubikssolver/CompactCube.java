@@ -18,7 +18,7 @@ public class CompactCube {
     /**
      * 3 turns for each of the 6 moves
      */
-    private static final int NUMMOVES =18;
+    public static final int NUMMOVES =18;
 
     //Maps byte i to the corresponding Corners and Edges
     private static String[] byteToStringEdgeMap = {"UB","BU",
@@ -282,6 +282,10 @@ public class CompactCube {
                                                {15,26,29}, //RFD
                                                };
 
+    public CompactCube(CompactCube cube){
+        corners = Arrays.copyOf(cube.corners, cube.corners.length);
+        edges = Arrays.copyOf(cube.edges, cube.edges.length);
+    }
 
     /**
      * For constructing a cube

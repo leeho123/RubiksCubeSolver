@@ -24,18 +24,9 @@ import java.io.StringReader;
 //@RunWith(RobolectricTestRunner.class)
 public class KorfTest extends TestCase {
 
-    @Test
-    public void testKorfsCorner() throws Exception {
-        ShadowEnvironment.setExternalStorageState(Environment.MEDIA_MOUNTED);
-        String path = Korfs.generateCornersAndroid();
-        File file = new File(path);
-
-        Assert.assertTrue(file.exists());
-    }
-
-    public void testKorfsCornerOnPC() throws Exception{
+    public void testKorfsCornerOnPC2() throws Exception{
         File file = new File(Korfs.CORNERS_FILE_NAME);
-        Korfs.generateCornerHeuristics(file);
+        Korfs.generateCornerHeuristics2(file);
     }
 
     public void testKorfsEdgeOnPC() throws Exception{
