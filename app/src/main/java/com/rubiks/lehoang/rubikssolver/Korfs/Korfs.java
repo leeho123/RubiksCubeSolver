@@ -64,7 +64,7 @@ public class Korfs {
     private static String search(Cube cube, int solutionLength) throws Exception {
         PriorityQueue<Node> workQueue = new PriorityQueue<Node>();
         Set<Node> seen = new HashSet<Node>();
-        Node node = new Node(cube.toString());
+        Node node = new Node(cube.toCompactString());
         workQueue.add(node);
         seen.add(node);
         int minOverDepth = solutionLength+1;
@@ -92,7 +92,6 @@ public class Korfs {
                     //Only add it to the worklist to be expanded if we haven't seen it before and
                     //its estimate is less than the desired solution length
                     if(!seen.contains(child) && childGoalEstimate <= solutionLength){
-                        System.out.println(workQueue.size());
                         workQueue.add(child);
                     }
                 }
@@ -120,8 +119,8 @@ public class Korfs {
 
         Queue<String> workQueue = new ArrayDeque<String>();
 
-        Cube solved = new Cube(new BufferedReader(new StringReader(Cube.SOLVED)));
-        workQueue.add(Cube.SOLVED);
+        Cube solved = new Cube(Cube.SOLVED_COMPACT);
+        workQueue.add(Cube.SOLVED_COMPACT);
         scoreMap.put(solved.encodeCorners(),0);
 
         FileOutputStream solvedStream = new FileOutputStream(file);
@@ -139,7 +138,7 @@ public class Korfs {
 
             for(String move : Cube.moves){
                 //Create a cube from the state
-                Cube current = new Cube(new BufferedReader(new StringReader(state)));
+                Cube current = new Cube(state);
                 int prevScore = scoreMap.get(current.encodeCorners());
 
                 current.performSequence(move);
@@ -147,7 +146,7 @@ public class Korfs {
 
                 //Check if state has been seen before
                 if(!scoreMap.containsKey(encoding)){
-                    String newState = current.toString();
+                    String newState = current.toCompactString();
 
                     //Add to worklist to be expanded
                     workQueue.add(newState);
@@ -164,58 +163,88 @@ public class Korfs {
 
     }
 
+    public static void generateEdgeHeuristics(File firstFile, File secondFile) throws Exception{
+        Map<String, Integer> firstEdgeScoreMap = new HashMap<String, Integer>();
+        Map<String, Integer> secondEdgeScoreMap = new HashMap<String, Integer>();
 
-    public static void generateFirstEdgeHeuristics(File file) throws Exception {
-        generateEdgeHeuristics(file, Cube.firstEdges);
-    }
-
-    public static void generateEdgeHeuristics(File file, Cube.Edge[] edges) throws Exception{
-        Map<String, Integer> scoreMap = new HashMap<String, Integer>();
-
+        Set<String> seen = new HashSet<String>();
         Queue<String> workQueue = new ArrayDeque<String>();
 
-        Cube solved = new Cube(new BufferedReader(new StringReader(Cube.SOLVED)));
-        workQueue.add(Cube.SOLVED);
-        scoreMap.put(solved.encode(edges),0);
+        Cube solved = new Cube(Cube.SOLVED_COMPACT);
+        workQueue.add(Cube.SOLVED_COMPACT);
 
-        Writer solvedStream = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.US_ASCII));
+        firstEdgeScoreMap.put(solved.encode(Cube.firstEdges), 0);
+        secondEdgeScoreMap.put(solved.encode(Cube.secondEdges),0);
+        seen.add(solved.encodeAllEdges());
+
+        Writer firstStream = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(firstFile), StandardCharsets.US_ASCII));
+        Writer secondStream = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(secondFile), StandardCharsets.US_ASCII));
         try {
-            StringBuilder builder = new StringBuilder();
-            builder.append(solved.encode(edges));
-            builder.append(",0\n");
+            StringBuilder secondBuilder = new StringBuilder();
+            StringBuilder firstBuilder = new StringBuilder();
 
-            solvedStream.write(builder.toString());
-            builder.setLength(0);
+            firstBuilder.append(solved.encode(Cube.firstEdges));
+            firstBuilder.append(",0\n");
+
+            secondBuilder.append(solved.encode(Cube.secondEdges));
+            secondBuilder.append(",0\n");
+
+            firstStream.write(firstBuilder.toString());
+            secondStream.write(secondBuilder.toString());
+
+            firstBuilder.setLength(0);
+            secondBuilder.setLength(0);
 
             while (!workQueue.isEmpty()) {
                 String state = workQueue.poll();
 
                 for (String move : Cube.moves) {
                     //Create a cube from the state
-                    Cube current = new Cube(new BufferedReader(new StringReader(state)));
-                    int prevScore = scoreMap.get(current.encode(edges));
+
+                    String enc = Cube.quickEncodeAll(state);
+
+                    int prevFirstScore = firstEdgeScoreMap.get(enc.substring(0,6));
+                    int prevSecondScore = secondEdgeScoreMap.get(enc.substring(6,12));
+
+                    Cube current = new Cube(state);
                     current.performSequence(move);
 
-                    String encoding = current.encode(edges);
-                    if (!scoreMap.containsKey(encoding)) {
-                        workQueue.add(current.toString());
-                        scoreMap.put(encoding, prevScore + 1);
+                    String encoding = current.encodeAllEdges();
 
-                        builder.append(encoding);
-                        builder.append(',');
-                        builder.append(prevScore + 1);
-                        builder.append('\n');
-                        solvedStream.write(builder.toString());
-                        builder.setLength(0);
+                    //If we've not seen this cube state before
+                    if (!seen.contains(encoding)) {
+                        workQueue.add(current.toCompactString());
+                        seen.add(encoding);
+                        String first  = encoding.substring(0,6);
+                        String second = encoding.substring(6,12);
+
+                        if(!firstEdgeScoreMap.containsKey(first)){
+                            firstEdgeScoreMap.put(first, prevFirstScore+1);
+                            firstBuilder.append(first);
+                            firstBuilder.append(',');
+                            firstBuilder.append(prevFirstScore + 1);
+                            firstBuilder.append('\n');
+                            firstStream.write(firstBuilder.toString());
+                            firstBuilder.setLength(0);
+                        }
+
+                        if(!secondEdgeScoreMap.containsKey(second)){
+                            secondEdgeScoreMap.put(second, prevSecondScore+1);
+                            secondBuilder.append(second);
+                            secondBuilder.append(',');
+                            secondBuilder.append(prevSecondScore + 1);
+                            secondBuilder.append('\n');
+                            secondStream.write(secondBuilder.toString());
+                            secondBuilder.setLength(0);
+                        }
+
                     }
                 }
             }
         }finally {
-            solvedStream.close();
+            firstStream.close();
+            secondStream.close();
         }
-    }
-    public static void generateSecondEdgeHeuristics(File file) throws Exception {
-        generateEdgeHeuristics(file, Cube.secondEdges);
     }
 
     public static void loadHeuristics() throws IOException {

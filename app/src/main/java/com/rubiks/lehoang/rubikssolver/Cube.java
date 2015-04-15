@@ -23,20 +23,16 @@ public class Cube implements Iterable<Cube.Face>{
     public static String[] moves = {"R","L","U","F","B","D",
             "R'","L'","U'","F'","B'","D'"};
 
-    private int size;
-    private Face back;
-    private Face front;
-    private Face top;
-    private Face bottom;
-    private Face right;
-    private Face left;
 
-    public static String BACK_FACE = "back";
-    public static String FRONT_FACE = "front";
-    public static String RIGHT_FACE = "right";
-    public static String LEFT_FACE = "left";
-    public static String TOP_FACE = "top";
-    public static String BOTTOM_FACE = "bottom";
+    private Face[] faces = new Face[6];
+    public static final int TOP = 0;
+    public static final int RIGHT = 1;
+    public static final int FRONT = 2;
+    public static final int BOTTOM = 3;
+    public static final int LEFT = 4;
+    public static final int BACK = 5;
+
+    private static int[] faceOrder = {TOP, LEFT, RIGHT, BOTTOM, FRONT, BACK};
 
     private Map<String, Face> faceMap = new HashMap<String, Face>();
 
@@ -50,6 +46,8 @@ public class Cube implements Iterable<Cube.Face>{
             "Right\nY Y Y\nY Y Y\nY Y Y\n"+
             "Left\nW W W\nW W W\nW W W\n"+
             "Back\nO O O\nO O O\nO O O\n";
+
+    public static String SOLVED_COMPACT = "BBBBBBBBBWWWWWWWWWYYYYYYYYYGGGGGGGGGRRRRRRRRROOOOOOOOO";
 
     private static Map<String,Integer> cornerMap = initCornerMap();
 
@@ -68,75 +66,80 @@ public class Cube implements Iterable<Cube.Face>{
     }
 
     public enum Edge{
+        BW, RW, OW, BR, GO, GY,
+        BY, RY, BO, OY, GR, GW
+    }
+    /*
         OY,OW,RY,RW,BR,GO,
         BO,GR,BY,BW,GY,GW;
-    }
+    }*/
 
-    public static Edge[] firstEdges = {Edge.RY, Edge.OY, Edge.RW, Edge.OW, Edge.BR, Edge.GO};
-    public static Edge[] secondEdges = {Edge.BO, Edge.GR, Edge.BY, Edge.BW, Edge.GY, Edge.GW};
+    public static Edge[] firstEdges = {Edge.BW, Edge.RW, Edge.OW, Edge.BR, Edge.GO, Edge.GY};
+    public static Edge[] secondEdges = {Edge.BY, Edge.RY, Edge.BO, Edge.OY, Edge.GR, Edge.GW};
+
 
     public Edge getEdgeColour(Edge edge){
         char[] edgeChar = new char[2];
         switch(edge){
             case OY:
                 //BR
-                edgeChar[0] = Square.Colour.ColourToLetter(back.getCentreRow().getRight().getColour());
-                edgeChar[1] = Square.Colour.ColourToLetter(right.getCentreRow().getLeft().getColour());
+                edgeChar[0] = Colour.ColourToLetter(faces[BACK].getCentreRow().getRight());
+                edgeChar[1] = Colour.ColourToLetter(faces[RIGHT].getCentreRow().getLeft());
                 break;
             case OW:
                 //BL
-                edgeChar[0] = Square.Colour.ColourToLetter(back.getCentreRow().getLeft().getColour());
-                edgeChar[1] = Square.Colour.ColourToLetter(left.getCentreRow().getLeft().getColour());
+                edgeChar[0] = Colour.ColourToLetter(faces[BACK].getCentreRow().getLeft());
+                edgeChar[1] = Colour.ColourToLetter(faces[LEFT].getCentreRow().getLeft());
                 break;
             case RY:
                 //FR
-                edgeChar[0] = Square.Colour.ColourToLetter(front.getCentreRow().getRight().getColour());
-                edgeChar[1] = Square.Colour.ColourToLetter(right.getCentreRow().getRight().getColour());
+                edgeChar[0] = Colour.ColourToLetter(faces[FRONT].getCentreRow().getRight());
+                edgeChar[1] = Colour.ColourToLetter(faces[RIGHT].getCentreRow().getRight());
                 break;
             case GO:
                 //BD
-                edgeChar[0] = Square.Colour.ColourToLetter(bottom.getTopRow().getCentre().getColour());
-                edgeChar[1] = Square.Colour.ColourToLetter(back.getBottomRow().getCentre().getColour());
+                edgeChar[0] = Colour.ColourToLetter(faces[BOTTOM].getTopRow().getCentre());
+                edgeChar[1] = Colour.ColourToLetter(faces[BACK].getBottomRow().getCentre());
                 break;
             case BO:
                 //UB
-                edgeChar[0] = Square.Colour.ColourToLetter(top.getTopRow().getCentre().getColour());
-                edgeChar[1] = Square.Colour.ColourToLetter(back.getTopRow().getCentre().getColour());
+                edgeChar[0] = Colour.ColourToLetter(faces[TOP].getTopRow().getCentre());
+                edgeChar[1] = Colour.ColourToLetter(faces[BACK].getTopRow().getCentre());
                 break;
             case GR:
                 //FD
-                edgeChar[0] = Square.Colour.ColourToLetter(bottom.getBottomRow().getCentre().getColour());
-                edgeChar[1] = Square.Colour.ColourToLetter(front.getBottomRow().getCentre().getColour());
+                edgeChar[0] = Colour.ColourToLetter(faces[BOTTOM].getBottomRow().getCentre());
+                edgeChar[1] = Colour.ColourToLetter(faces[FRONT].getBottomRow().getCentre());
                 break;
             case BY:
                 //RU
-                edgeChar[0] = Square.Colour.ColourToLetter(top.getCentreRow().getRight().getColour());
-                edgeChar[1] = Square.Colour.ColourToLetter(right.getTopRow().getCentre().getColour());
+                edgeChar[0] = Colour.ColourToLetter(faces[TOP].getCentreRow().getRight());
+                edgeChar[1] = Colour.ColourToLetter(faces[RIGHT].getTopRow().getCentre());
                 break;
             case BW:
                 //UL
-                edgeChar[0] = Square.Colour.ColourToLetter(top.getCentreRow().getLeft().getColour());
-                edgeChar[1] = Square.Colour.ColourToLetter(left.getTopRow().getCentre().getColour());
+                edgeChar[0] = Colour.ColourToLetter(faces[TOP].getCentreRow().getLeft());
+                edgeChar[1] = Colour.ColourToLetter(faces[LEFT].getTopRow().getCentre());
                 break;
             case GY:
                 //DR
-                edgeChar[0] = Square.Colour.ColourToLetter(bottom.getCentreRow().getRight().getColour());
-                edgeChar[1] = Square.Colour.ColourToLetter(right.getBottomRow().getCentre().getColour());
+                edgeChar[0] = Colour.ColourToLetter(faces[BOTTOM].getCentreRow().getRight());
+                edgeChar[1] = Colour.ColourToLetter(faces[RIGHT].getBottomRow().getCentre());
                 break;
             case RW:
                 //FL
-                edgeChar[0] = Square.Colour.ColourToLetter(front.getCentreRow().getLeft().getColour());
-                edgeChar[1] = Square.Colour.ColourToLetter(left.getCentreRow().getRight().getColour());
+                edgeChar[0] = Colour.ColourToLetter(faces[FRONT].getCentreRow().getLeft());
+                edgeChar[1] = Colour.ColourToLetter(faces[LEFT].getCentreRow().getRight());
                 break;
             case BR:
                 //FU
-                edgeChar[0] = Square.Colour.ColourToLetter(top.getBottomRow().getCentre().getColour());
-                edgeChar[1] = Square.Colour.ColourToLetter(front.getTopRow().getCentre().getColour());
+                edgeChar[0] = Colour.ColourToLetter(faces[TOP].getBottomRow().getCentre());
+                edgeChar[1] = Colour.ColourToLetter(faces[FRONT].getTopRow().getCentre());
                 break;
             case GW:
                 //DL
-                edgeChar[0] = Square.Colour.ColourToLetter(bottom.getCentreRow().getLeft().getColour());
-                edgeChar[1] = Square.Colour.ColourToLetter(left.getBottomRow().getCentre().getColour());
+                edgeChar[0] = Colour.ColourToLetter(faces[BOTTOM].getCentreRow().getLeft());
+                edgeChar[1] = Colour.ColourToLetter(faces[LEFT].getBottomRow().getCentre());
                 break;
             default:
                 return null;
@@ -165,71 +168,71 @@ public class Cube implements Iterable<Cube.Face>{
         StringBuilder encoding = new StringBuilder();
 
         char[] ULF = new char[3];
-        ULF[0] = Square.Colour.ColourToLetter(top.getBottomRow().getLeft().getColour());
-        ULF[1] = Square.Colour.ColourToLetter(left.getTopRow().getRight().getColour());
-        ULF[2] = Square.Colour.ColourToLetter(front.getTopRow().getLeft().getColour());
+        ULF[0] = Colour.ColourToLetter(faces[TOP].getBottomRow().getLeft());
+        ULF[1] = Colour.ColourToLetter(faces[LEFT].getTopRow().getRight());
+        ULF[2] = Colour.ColourToLetter(faces[FRONT].getTopRow().getLeft());
         Arrays.sort(ULF);
         int ULFenc = cornerMap.get(new String(ULF));
         encoding.append(ULFenc);
 
         char[] URF = new char[3];
-        URF[0] = Square.Colour.ColourToLetter(top.getBottomRow().getRight().getColour());
-        URF[1] = Square.Colour.ColourToLetter(right.getTopRow().getRight().getColour());
-        URF[2] = Square.Colour.ColourToLetter(front.getTopRow().getRight().getColour());
+        URF[0] = Colour.ColourToLetter(faces[TOP].getBottomRow().getRight());
+        URF[1] = Colour.ColourToLetter(faces[RIGHT].getTopRow().getRight());
+        URF[2] = Colour.ColourToLetter(faces[FRONT].getTopRow().getRight());
         Arrays.sort(URF);
         int URFenc = cornerMap.get(new String(URF));
         encoding.append(URFenc);
 
         //ULB
         char[] ULB = new char[3];
-        ULB[0] = Square.Colour.ColourToLetter(top.getTopRow().getLeft().getColour());
-        ULB[1] = Square.Colour.ColourToLetter(left.getTopRow().getLeft().getColour());
-        ULB[2] = Square.Colour.ColourToLetter(back.getTopRow().getLeft().getColour());
+        ULB[0] = Colour.ColourToLetter(faces[TOP].getTopRow().getLeft());
+        ULB[1] = Colour.ColourToLetter(faces[LEFT].getTopRow().getLeft());
+        ULB[2] = Colour.ColourToLetter(faces[BACK].getTopRow().getLeft());
         Arrays.sort(ULB);
         int ULBenc = cornerMap.get(new String(ULB));
         encoding.append(ULBenc);
 
         //URB
         char[] URB = new char[3];
-        URB[0] = Square.Colour.ColourToLetter(top.getTopRow().getRight().getColour());
-        URB[1] = Square.Colour.ColourToLetter(right.getTopRow().getLeft().getColour());
-        URB[2] = Square.Colour.ColourToLetter(back.getTopRow().getRight().getColour());
+        URB[0] = Colour.ColourToLetter(faces[TOP].getTopRow().getRight());
+        URB[1] = Colour.ColourToLetter(faces[RIGHT].getTopRow().getLeft());
+        URB[2] = Colour.ColourToLetter(faces[BACK].getTopRow().getRight());
         Arrays.sort(URB);
         int URBenc = cornerMap.get(new String(URB));
         encoding.append(URBenc);
 
         //DLF
         char[] DLF = new char[3];
-        DLF[0] = Square.Colour.ColourToLetter(bottom.getBottomRow().getLeft().getColour());
-        DLF[1] = Square.Colour.ColourToLetter(left.getBottomRow().getRight().getColour());
-        DLF[2] = Square.Colour.ColourToLetter(front.getBottomRow().getLeft().getColour());
+        DLF[0] = Colour.ColourToLetter(faces[BOTTOM].getBottomRow().getLeft());
+        DLF[1] = Colour.ColourToLetter(faces[LEFT].getBottomRow().getRight());
+        DLF[2] = Colour.ColourToLetter(faces[FRONT].getBottomRow().getLeft());
         Arrays.sort(DLF);
         int DLFenc = cornerMap.get(new String(DLF));
         encoding.append(DLFenc);
 
         //DRF
         char[] DRF = new char[3];
-        DRF[0] = Square.Colour.ColourToLetter(bottom.getBottomRow().getRight().getColour());
-        DRF[1] = Square.Colour.ColourToLetter(right.getBottomRow().getRight().getColour());
-        DRF[2] = Square.Colour.ColourToLetter(front.getBottomRow().getRight().getColour());
+        DRF[0] = Colour.ColourToLetter(faces[BOTTOM].getBottomRow().getRight());
+        DRF[1] = Colour.ColourToLetter(faces[RIGHT].getBottomRow().getRight());
+        DRF[2] = Colour.ColourToLetter(faces[FRONT].getBottomRow().getRight());
         Arrays.sort(DRF);
         int DRFenc = cornerMap.get(new String(DRF));
         encoding.append(DRFenc);
 
         //DLB
         char[] DLB = new char[3];
-        DLB[0] = Square.Colour.ColourToLetter(bottom.getTopRow().getLeft().getColour());
-        DLB[1] = Square.Colour.ColourToLetter(left.getBottomRow().getLeft().getColour());
-        DLB[2] = Square.Colour.ColourToLetter(back.getBottomRow().getLeft().getColour());
+        DLB[0] = Colour.ColourToLetter(faces[BOTTOM].getTopRow().getLeft());
+        DLB[1] = Colour.ColourToLetter(faces[LEFT].getBottomRow().getLeft());
+        DLB[2] = Colour.ColourToLetter(faces[BACK].getBottomRow().getLeft());
         Arrays.sort(DLB);
         int DLBenc = cornerMap.get(new String(DLB));
         encoding.append(DLBenc);
 
         //DRB
         char[] DRB = new char[3];
-        DRB[0] = Square.Colour.ColourToLetter(bottom.getTopRow().getRight().getColour());
-        DRB[1] = Square.Colour.ColourToLetter(right.getBottomRow().getLeft().getColour());
-        DRB[2] = Square.Colour.ColourToLetter(back.getBottomRow().getRight().getColour());
+        DRB[0] = Colour.ColourToLetter(faces[BOTTOM].getTopRow().getRight());
+        DRB[1] = Colour.ColourToLetter(faces[RIGHT].getBottomRow().getLeft());
+        DRB[2] = Colour.ColourToLetter(faces[BACK].getBottomRow().getRight());
         Arrays.sort(DRB);
         int DRBenc = cornerMap.get(new String(DRB));
         encoding.append(DRBenc);
@@ -238,15 +241,19 @@ public class Cube implements Iterable<Cube.Face>{
     }
 
     public String encode(Edge[] edges){
-        StringBuilder encoding = new StringBuilder(12);
+        StringBuilder encoding = new StringBuilder(edges.length);
         for(Edge edge : edges){
             encoding.append((char) ('a' + getEdgeColour(edge).ordinal()));
         }
         return encoding.toString();
     }
 
+    public String encodeAllEdges(){
+        return encode(Edge.values());
+    }
+
     private class CubeIterator implements Iterator<Face>{
-        Face[] faces = {top, right, front, bottom, left, back};
+  
         int counter = 0;
 
         @Override
@@ -292,37 +299,160 @@ public class Cube implements Iterable<Cube.Face>{
         BufferedReader br = new BufferedReader(
                 new InputStreamReader(context.getResources().openRawResource(R.raw.state)));
         extractFaces(br);
-        faceMapInit();
     }
+/*
+    public String encode(Edge[] edges){
+        StringBuilder encoding = new StringBuilder(edges.length);
+        for(Edge edge : edges){
+            encoding.append((char) ('a' + getEdgeColour(edge).ordinal()));
+        }
+        return encoding.toString();
 
+    }
+       public enum Edge{
+        BW, RW, OW, BR, GO, GY,
+        BY, RY, BO, OY, GR, GW
+
+
+    }*/
+
+
+    private static int U_START = 0;
+    private static int L_START = 9;
+    private static int R_START = 18;
+    private static int D_START = 27;
+    private static int F_START = 36;
+    private static int B_START = 45;
+
+    /**          U
+     * 1 2 3 | 1 2 3 | 1 2 3 | 1 2 3
+     * 4 L 6 | 4 F 6 | 4 R 6 | 4 B 6
+     * 7 8 9 | 7 8 9 | 7 8 9 | 7 8 9
+     *           D
+     * @param compactRep
+     * @return
+     */
+    public static String quickEncodeAll(String compactRep){
+        //UR = U6 R2
+        //UF = U8 F2
+        //UL = U4 L2-
+        //UB = U2 B2
+        //
+        //FL = F4 L6-
+        //FR = F6 R4
+        //BL = B6 L4-
+        //BR = B4 R6
+        //
+        //DR = R8 D6
+        //DF = F8 D2
+        //DL = L8 D4-
+        //DB = B8 D8
+
+        builder.setLength(0);
+        //UL
+        char[] buffer = {compactRep.charAt(U_START+3), compactRep.charAt(L_START+1)};
+        Util.order(buffer);
+        builder.append((char) ('a' + Edge.valueOf(new String(buffer)).ordinal()));
+
+        //FL
+        buffer[0] = compactRep.charAt(F_START+3);
+        buffer[1] = compactRep.charAt(L_START+5);
+        Util.order(buffer);
+        builder.append((char) ('a' + Edge.valueOf(new String(buffer)).ordinal()));
+        //BL
+        buffer[0] = compactRep.charAt(B_START+5);
+        buffer[1] = compactRep.charAt(L_START+3);
+        Util.order(buffer);
+        builder.append((char) ('a' + Edge.valueOf(new String(buffer)).ordinal()));
+        //FU
+        buffer[0] = compactRep.charAt(U_START + 7);
+        buffer[1] = compactRep.charAt(F_START + 1);
+        Util.order(buffer);
+        builder.append((char) ('a' + Edge.valueOf(new String(buffer)).ordinal()));
+        //BD
+        buffer[0] = compactRep.charAt(B_START+7);
+        buffer[1] = compactRep.charAt(D_START+7);
+        Util.order(buffer);
+        builder.append((char) ('a' + Edge.valueOf(new String(buffer)).ordinal()));
+        //RD
+        buffer[0] = compactRep.charAt(R_START+7);
+        buffer[1] = compactRep.charAt(D_START+5);
+        Util.order(buffer);
+        builder.append((char) ('a' + Edge.valueOf(new String(buffer)).ordinal()));
+        //RU
+        buffer[0] = compactRep.charAt(U_START+5);
+        buffer[1] = compactRep.charAt(R_START+1);
+        Util.order(buffer);
+        builder.append((char) ('a' + Edge.valueOf(new String(buffer)).ordinal()));
+        //FR
+        buffer[0] = compactRep.charAt(F_START + 5);
+        buffer[1] = compactRep.charAt(R_START + 3);
+        Util.order(buffer);
+        builder.append((char) ('a' + Edge.valueOf(new String(buffer)).ordinal()));
+        //BU
+        buffer[0] = compactRep.charAt(B_START + 1);
+        buffer[1] = compactRep.charAt(U_START + 1);
+        Util.order(buffer);
+        builder.append((char) ('a' + Edge.valueOf(new String(buffer)).ordinal()));
+        //BR
+        buffer[0] = compactRep.charAt(B_START + 3);
+        buffer[1] = compactRep.charAt(R_START + 5);
+        Util.order(buffer);
+        builder.append((char) ('a' + Edge.valueOf(new String(buffer)).ordinal()));
+        //FD
+        buffer[0] = compactRep.charAt(F_START + 7);
+        buffer[1] = compactRep.charAt(D_START + 1);
+        Util.order(buffer);
+        builder.append((char) ('a' + Edge.valueOf(new String(buffer)).ordinal()));
+        //DL
+        buffer[0] = compactRep.charAt(L_START+7);
+        buffer[1] = compactRep.charAt(D_START+3);
+        Util.order(buffer);
+        builder.append((char) ('a' + Edge.valueOf(new String(buffer)).ordinal()));
+
+        return builder.toString();
+
+    }
     /**
      * For constructing a cube faaaaaast
+     *
+     * U1U2U3U4U5U6U7U8U9L1L2L3L4L5L6L7L8L9R1R2R3R4R5R6R7R8R9
+     * D1D2D3D4D5D6D7D8D9F1F2F3F4F5F6F7F8F9B1B2B3B4B5B6B7B8B9
+     *
      * @param compactString
      */
     public Cube(String compactString){
+        assert(compactString.length() == 54);
+        String[] facesStr = new String[6];
+        for(int i = 0; i < facesStr.length;i++){
+            facesStr[i] = compactString.substring(i*9,(i*9)+9);
+        }
+        buildCube(facesStr);
+    }
 
+    private void buildCube(String[] facesStr){
+        int j = 0;
+        for(int i = 0; i < facesStr.length; i++){
+            faces[faceOrder[i]] = new Face(facesStr[i]);
+        }
+
+        faces[RIGHT] = faces[RIGHT].flipY();
+        faces[BACK] = faces[BACK].flipY();
+        faces[BOTTOM] = faces[BOTTOM].flipX();
     }
-    private void faceMapInit(){
-        faceMap.put(BACK_FACE, back);
-        faceMap.put(FRONT_FACE, front);
-        faceMap.put(RIGHT_FACE, right);
-        faceMap.put(LEFT_FACE, left);
-        faceMap.put(BOTTOM_FACE, bottom);
-        faceMap.put(TOP_FACE, top);
-    }
+
 
     public Cube(BufferedReader br) throws IOException, Exception{
         extractFaces(br);
-        faceMapInit();
     }
 
-    public Face getFace(String face){
-        return faceMap.get(face);
+    public Face getFace(int face){
+        return faces[face];
     }
 
     public boolean isSolved(){
-        return front.isSolved() && back.isSolved() && top.isSolved() &&
-                bottom.isSolved() && right.isSolved() && left.isSolved();
+        return faces[FRONT].isSolved() && faces[BACK].isSolved() && faces[TOP].isSolved() &&
+                faces[BOTTOM].isSolved() && faces[RIGHT].isSolved() && faces[LEFT].isSolved();
     }
 
 
@@ -341,17 +471,17 @@ public class Cube implements Iterable<Cube.Face>{
                  * Extract the configuration
                  */
                 if(line.contains("TOP")){
-                    top = extractFace(br);
+                    faces[TOP] = new Face(br);
                 } else if(line.contains("LEFT")){
-                    left = extractFace(br);
+                    faces[LEFT] = new Face(br);
                 } else if(line.contains("RIGHT")){
-                    right = extractFace(br);
+                    faces[RIGHT] = new Face(br);
                 } else if(line.contains("BOTTOM")){
-                    bottom = extractFace(br);
+                    faces[BOTTOM] = new Face(br);
                 }else if(line.contains("FRONT")){
-                    front = extractFace(br);
+                    faces[FRONT] = new Face(br);
                 }else if(line.contains("BACK")){
-                    back = extractFace(br);
+                    faces[BACK] = new Face(br);
                 }
                 line = br.readLine();
             }
@@ -366,18 +496,26 @@ public class Cube implements Iterable<Cube.Face>{
     @Override
     public String toString(){
         builder.setLength(0);
-        builder.append("Top\n").append(top.toString());
-        builder.append("Bottom\n").append(bottom.toString());
-        builder.append("Left\n").append(left.toString());
-        builder.append("Right\n").append(right.toString());
-        builder.append("Back\n").append(back.toString());
-        builder.append("Front\n").append(front.toString());
+        builder.append("Top\n").append(faces[TOP].toString());
+        builder.append("Bottom\n").append(faces[BOTTOM].toString());
+        builder.append("Left\n").append(faces[LEFT].toString());
+        builder.append("Right\n").append(faces[RIGHT].toString());
+        builder.append("Back\n").append(faces[BACK].toString());
+        builder.append("Front\n").append(faces[FRONT].toString());
 
         return builder.toString();
     }
 
     public String toCompactString(){
+        builder.setLength(0);
+        for(int i = 0 ; i <faceOrder.length; i++){
+            Face face = faces[faceOrder[i]];
+            Face faceToAppend = faceOrder[i] == RIGHT || faceOrder[i] == BACK ? face.flipY() :
+                                faceOrder[i] == BOTTOM ? face.flipX() : face;
 
+            builder.append(faceToAppend.toCompactString());
+        }
+        return builder.toString();
     }
 
     public void performMove(Turn turn) throws Exception{
@@ -395,42 +533,42 @@ public class Cube implements Iterable<Cube.Face>{
 
         switch (turn.getMove()) {
             case Z:
-                newTopFace = clockwise ? left : right.flipY();
-                newBottomFace = clockwise ? right : left.flipY();
-                newRightFace = clockwise? top.flipX() : bottom;
-                newLeftFace = clockwise ? bottom.flipX() : top;
+                newTopFace = clockwise ? faces[LEFT] : faces[RIGHT].flipY();
+                newBottomFace = clockwise ? faces[RIGHT] : faces[LEFT].flipY();
+                newRightFace = clockwise? faces[TOP].flipX() : faces[BOTTOM];
+                newLeftFace = clockwise ? faces[BOTTOM].flipX() : faces[TOP];
 
                 newTopFace.rotate(clockwise);
                 newBottomFace.rotate(clockwise);
                 newRightFace.rotate(clockwise);
                 newLeftFace.rotate(clockwise);
 
-                front.rotate(clockwise);
-                back.rotate(clockwise);
-                newBackFace = back;
-                newFrontFace = front;
+                faces[FRONT].rotate(clockwise);
+                faces[BACK].rotate(clockwise);
+                newBackFace = faces[BACK];
+                newFrontFace = faces[FRONT];
                 break;
             case X:
-                newTopFace = clockwise ? front : back.flipX();
-                newBottomFace = clockwise ? back : front.flipX();
-                newBackFace = clockwise? top.flipX() : bottom;
-                newFrontFace = clockwise? bottom.flipX() : top;
+                newTopFace = clockwise ? faces[FRONT] : faces[BACK].flipX();
+                newBottomFace = clockwise ? faces[BACK] : faces[FRONT].flipX();
+                newBackFace = clockwise? faces[TOP].flipX() : faces[BOTTOM];
+                newFrontFace = clockwise? faces[BOTTOM].flipX() : faces[TOP];
 
-                right.rotate(!clockwise);
-                left.rotate(!clockwise);
-                newRightFace = right;
-                newLeftFace = left;
+                faces[RIGHT].rotate(!clockwise);
+                faces[LEFT].rotate(!clockwise);
+                newRightFace = faces[RIGHT];
+                newLeftFace = faces[LEFT];
                 break;
             case Y:
-                newRightFace = clockwise ? back : front.flipY();
-                newLeftFace = clockwise ? front : back.flipY();
-                newFrontFace = clockwise ? right.flipY() : left;
-                newBackFace = clockwise ? left.flipY() : right;
+                newRightFace = clockwise ? faces[BACK] : faces[FRONT].flipY();
+                newLeftFace = clockwise ? faces[FRONT] : faces[BACK].flipY();
+                newFrontFace = clockwise ? faces[RIGHT].flipY() : faces[LEFT];
+                newBackFace = clockwise ? faces[LEFT].flipY() : faces[RIGHT];
 
-                top.rotate(clockwise);
-                bottom.rotate(clockwise);
-                newTopFace = top;
-                newBottomFace = bottom;
+                faces[TOP].rotate(clockwise);
+                faces[BOTTOM].rotate(clockwise);
+                newTopFace = faces[TOP];
+                newBottomFace = faces[BOTTOM];
 
                 break;
             case R:
@@ -447,15 +585,15 @@ public class Cube implements Iterable<Cube.Face>{
                 performSequence("X'" + (clockwise ? "U" : "U'") + 'X' );
                 return;
             case U:
-                faceToRotate = top;
-                newTopFace = top;
-                newBottomFace = bottom;
+                faceToRotate = faces[TOP];
+                newTopFace = faces[TOP];
+                newBottomFace = faces[BOTTOM];
 
-                newFrontFace = new Face(clockwise ? right.topRow.flip() : left.topRow, front.centreRow, front.bottomRow);
-                newLeftFace = new Face(clockwise ? front.topRow : back.topRow.flip(), left.centreRow, left.bottomRow);
+                newFrontFace = new Face(clockwise ? faces[RIGHT].topRow.flip() : faces[LEFT].topRow, faces[FRONT].centreRow, faces[FRONT].bottomRow);
+                newLeftFace = new Face(clockwise ? faces[FRONT].topRow : faces[BACK].topRow.flip(), faces[LEFT].centreRow, faces[LEFT].bottomRow);
 
-                newRightFace = new Face(clockwise ? back.topRow : front.topRow.flip(), right.centreRow, right.bottomRow);
-                newBackFace = new Face(clockwise ? left.topRow.flip() : right.topRow, back.centreRow, back.bottomRow);
+                newRightFace = new Face(clockwise ? faces[BACK].topRow : faces[FRONT].topRow.flip(), faces[RIGHT].centreRow, faces[RIGHT].bottomRow);
+                newBackFace = new Face(clockwise ? faces[LEFT].topRow.flip() : faces[RIGHT].topRow, faces[BACK].centreRow, faces[BACK].bottomRow);
                 break;
             case D:
                 //WRONG
@@ -469,12 +607,12 @@ public class Cube implements Iterable<Cube.Face>{
             faceToRotate.rotate(clockwise);
         }
 
-        front = newFrontFace;
-        right = newRightFace;
-        left = newLeftFace;
-        back = newBackFace;
-        bottom = newBottomFace;
-        top = newTopFace;
+        faces[FRONT] = newFrontFace;
+        faces[RIGHT] = newRightFace;
+        faces[LEFT] = newLeftFace;
+        faces[BACK] = newBackFace;
+        faces[BOTTOM] = newBottomFace;
+        faces[TOP] = newTopFace;
 
 
     }
@@ -534,49 +672,55 @@ public class Cube implements Iterable<Cube.Face>{
         }
     }
 
-    private Face extractFace(BufferedReader br) throws Exception{
-        String topRow;
-        String middleRow;
-        String bottomRow;
-
-        Face extracted = null;
-        try {
-            topRow = br.readLine();
-            middleRow = br.readLine();
-            bottomRow = br.readLine();
-
-
-            String[] topRowArr = topRow.split(" ");
-
-            Row top = new Row(new Square(topRowArr[0].charAt(0)),
-                              new Square(topRowArr[1].charAt(0)),
-                              new Square(topRowArr[2].charAt(0)));
-
-            String[] middleRowArr = middleRow.split(" ");
-
-            Row middle = new Row(new Square(middleRowArr[0].charAt(0)),
-                                 new Square(middleRowArr[1].charAt(0)),
-                                 new Square(middleRowArr[2].charAt(0)));
-
-            String[] bottomRowArr = bottomRow.split(" ");
-
-            Row bottom = new Row(new Square(bottomRowArr[0].charAt(0)),
-                                 new Square(bottomRowArr[1].charAt(0)),
-                                 new Square(bottomRowArr[2].charAt(0)));
-
-            extracted = new Face(top, middle, bottom);
-        }catch(IOException e){
-            Util.LogError("Cube.extractFace()", "IOException when reading from file");
-        }
-        return extracted;
-    }
-
-    public class Face implements Iterable<Square>{
+    public class Face implements Iterable<Colour>{
         private Row topRow;
         private Row centreRow;
         private Row bottomRow;
 
+        /**
+         * Build face from string in format CCCCCCCCC where C is a colour
+         * @param faceStr
+         */
+        public Face(String faceStr){
+            assert(faceStr.length() == 9);
+            topRow = new Row(faceStr.substring(0,3));
+            centreRow = new Row(faceStr.substring(3,6));
+            bottomRow = new Row(faceStr.substring(6,9));
+        }
 
+        public Face(BufferedReader br){
+            String topRowStr;
+            String middleRowStr;
+            String bottomRowStr;
+            try {
+                topRowStr = br.readLine();
+                middleRowStr = br.readLine();
+                bottomRowStr = br.readLine();
+
+
+                String[] topRowArr = topRowStr.split(" ");
+
+                topRow = new Row(Colour.letterToColour(topRowArr[0].charAt(0)),
+                        Colour.letterToColour(topRowArr[1].charAt(0)),
+                        Colour.letterToColour(topRowArr[2].charAt(0)));
+
+                String[] middleRowArr = middleRowStr.split(" ");
+
+                centreRow = new Row(Colour.letterToColour(middleRowArr[0].charAt(0)),
+                        Colour.letterToColour(middleRowArr[1].charAt(0)),
+                        Colour.letterToColour(middleRowArr[2].charAt(0)));
+
+                String[] bottomRowArr = bottomRowStr.split(" ");
+
+                bottomRow = new Row(Colour.letterToColour(bottomRowArr[0].charAt(0)),
+                        Colour.letterToColour(bottomRowArr[1].charAt(0)),
+                        Colour.letterToColour(bottomRowArr[2].charAt(0)));
+
+            }catch(IOException e){
+                Util.LogError("Can't open file in creating face", "IOException when reading from file");
+            }
+        }
+    
         public Face(Row top, Row centre, Row bottom){
             topRow = top;
             centreRow = centre;
@@ -615,8 +759,17 @@ public class Cube implements Iterable<Cube.Face>{
             return topRow.isSolved() && centreRow.isSolved() && bottomRow.isSolved() &&
                     topRow.equals(centreRow) && centreRow.equals(bottomRow) && topRow.equals(bottomRow);
         }
-        public Square.Colour getFaceColour(){
-            return centreRow.centre.getColour();
+        public Colour getFaceColour(){
+            return centreRow.centre;
+        }
+        
+        public String toCompactString(){
+            StringBuilder builder = new StringBuilder();
+            builder.append(topRow.toCompactString());
+            builder.append(centreRow.toCompactString());
+            builder.append(bottomRow.toCompactString());
+
+            return builder.toString();
         }
 
         public void rotate(boolean clockwise){
@@ -649,7 +802,7 @@ public class Cube implements Iterable<Cube.Face>{
         }
 
         @Override
-        public Iterator<Square> iterator() {
+        public Iterator<Colour> iterator() {
             return new FaceIterator();
         }
 
@@ -659,19 +812,19 @@ public class Cube implements Iterable<Cube.Face>{
          * 3 4 5
          * 6 7 8
          */
-        private class FaceIterator implements Iterator<Square>{
-            Square[] squares = {topRow.getLeft(), topRow.getCentre(), topRow.getRight(),
+        private class FaceIterator implements Iterator<Colour>{
+            Colour[] colours = {topRow.getLeft(), topRow.getCentre(), topRow.getRight(),
                     centreRow.getLeft(), centreRow.getCentre(),centreRow.getRight(),
                     bottomRow.getLeft(), bottomRow.getCentre(),bottomRow.getRight()};
             int count = 0;
             @Override
             public boolean hasNext() {
-                return count < squares.length;
+                return count < colours.length;
             }
 
             @Override
-            public Square next() {
-                Square toReturn = squares[count];
+            public Colour next() {
+                Colour toReturn = colours[count];
                 count++;
                 return toReturn;
             }
@@ -688,25 +841,33 @@ public class Cube implements Iterable<Cube.Face>{
      * Class for rows
      */
     public class Row {
-        private Square left;
-        private Square right;
-        private Square centre;
+        private Colour left;
+        private Colour right;
+        private Colour centre;
 
-        public Row(Square left, Square centre, Square right){
+        public Row(Colour left, Colour centre, Colour right){
             this.left = left;
             this.right = right;
             this.centre = centre;
         }
 
-        public Square getLeft(){
+        public Row(String rowStr) {
+            assert(rowStr.length() == 3);
+
+            left = Colour.letterToColour(rowStr.charAt(0));
+            centre = Colour.letterToColour(rowStr.charAt(1));
+            right = Colour.letterToColour(rowStr.charAt(2));
+        }
+
+        public Colour getLeft(){
             return left;
         }
 
-        public Square getRight(){
+        public Colour getRight(){
             return right;
         }
 
-        public Square getCentre(){
+        public Colour getCentre(){
             return centre;
         }
 
@@ -715,16 +876,16 @@ public class Cube implements Iterable<Cube.Face>{
         }
 
         public boolean isSolved(){
-            return left.getColour() == right.getColour() && left.getColour() == centre.getColour() && right.getColour() == centre.getColour();
+            return left == right && left == centre && right == centre;
         }
 
         @Override
         public boolean equals(Object row){
             Row b = (Row) row;
 
-            boolean result = b.left.getColour() == left.getColour() &&
-                    b.right.getColour() == right.getColour() &&
-                    b.centre.getColour() == centre.getColour();
+            boolean result = b.left == left &&
+                    b.right == right &&
+                    b.centre == centre;
 
             return result;
         }
@@ -732,6 +893,14 @@ public class Cube implements Iterable<Cube.Face>{
         @Override
         public String toString() {
             return left.toString() +" "+ centre.toString()+ " "+ right.toString();
+        }
+
+        public String toCompactString() {
+            StringBuilder builder = new StringBuilder();
+            builder.append(left.toString());
+            builder.append(centre.toString());
+            builder.append(right.toString());
+            return builder.toString();
         }
     }
 }

@@ -47,18 +47,18 @@ public class Node implements Comparable<Node> {
         cubeState = state;
         currentMoveCount = 0;
         sequence = "";
-        estMoveToGoal = getHeuristic(new Cube(new BufferedReader(new StringReader(cubeState))));
+        estMoveToGoal = getHeuristic(new Cube(cubeState));
     }
 
     public List<Node> generateChildren() throws Exception {
         List<Node> children = new ArrayList<Node>();
         for(String move : Cube.moves){
-            Cube cube = new Cube(new BufferedReader(new StringReader(cubeState)));
+            Cube cube = new Cube(cubeState);
             cube.performSequence(move);
 
             int estGoal = getHeuristic(cube);
 
-            Node child = new Node(cube.toString(), currentMoveCount+1, currentMoveCount+estGoal, sequence+move);
+            Node child = new Node(cube.toCompactString(), currentMoveCount+1, currentMoveCount+estGoal, sequence+move);
             children.add(child);
         }
 
@@ -67,16 +67,23 @@ public class Node implements Comparable<Node> {
 
     public static int getHeuristic(Cube cube) throws UnsupportedEncodingException {
         int[] heuristics = new int[3];
+        if(!Korfs.secondEdgeMap.containsKey(cube.encode(Cube.secondEdges))){
+            System.out.println(cube.encode(Cube.secondEdges));
+        }
+
+        if(!Korfs.firstEdgeMap.containsKey(cube.encode(Cube.firstEdges))){
+            System.out.println(cube.encode(Cube.firstEdges));
+        }
         heuristics[0] = Korfs.cornerMap.get(cube.encodeCorners());
         heuristics[1] = Korfs.firstEdgeMap.get(cube.encode(Cube.firstEdges));
         heuristics[2] = Korfs.secondEdgeMap.get(cube.encode(Cube.secondEdges));
 
-        int estGoal = heuristics[0]; //Util.max(heuristics);
+        int estGoal = Util.max(heuristics);
         return estGoal;
     }
 
     public boolean isSolved() throws Exception {
-        return new Cube(new BufferedReader(new StringReader(cubeState))).isSolved();
+        return new Cube(cubeState).isSolved();
     }
 
     public String getSequence(){
@@ -96,8 +103,8 @@ public class Node implements Comparable<Node> {
         Cube a = null;
         Cube b = null;
         try {
-            a = new Cube(new BufferedReader(new StringReader(cubeState)));
-            b = new Cube(new BufferedReader(new StringReader(((Node)node).cubeState)));
+            a = new Cube(cubeState);
+            b = new Cube((((Node)node).cubeState));
 
         } catch (Exception e) {
                 e.printStackTrace();

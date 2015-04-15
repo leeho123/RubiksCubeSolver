@@ -50,7 +50,7 @@ public class Util {
         }
     }
 
-    public static void addFaceToConfig(String filename, String face, Square.Colour[][] config, Context context){
+    public static void addFaceToConfig(String filename, String face, Colour[][] config, Context context){
         try {
             FileOutputStream outputStream = context.openFileOutput(filename, Context.MODE_PRIVATE);
             outputStream.write(face.getBytes());
@@ -58,7 +58,7 @@ public class Util {
             //Write config here
             for (int i = 0; i < 3; i++){
                 for(int j = 0; j < 3; j++){
-                    outputStream.write(Square.Colour.ColourToLetter(config[i][j]));
+                    outputStream.write(Colour.ColourToLetter(config[i][j]));
 
                 }
                 outputStream.write('\n');
@@ -69,15 +69,15 @@ public class Util {
         }
     }
 
-    public static Map<Square.Colour, String> getColourFaceMap(Cube cube){
-        Map<Square.Colour, String> colourToFace = new HashMap<Square.Colour, String>();
+    public static Map<Colour, String> getColourFaceMap(Cube cube){
+        Map<Colour, String> colourToFace = new HashMap<Colour, String>();
 
-        colourToFace.put(cube.getFace(Cube.BACK_FACE).getFaceColour(),"B");
-        colourToFace.put(cube.getFace(Cube.FRONT_FACE).getFaceColour(),"F");
-        colourToFace.put(cube.getFace(Cube.RIGHT_FACE).getFaceColour(),"R");
-        colourToFace.put(cube.getFace(Cube.LEFT_FACE).getFaceColour(),"L");
-        colourToFace.put(cube.getFace(Cube.TOP_FACE).getFaceColour(),"U");
-        colourToFace.put(cube.getFace(Cube.BOTTOM_FACE).getFaceColour(),"D");
+        colourToFace.put(cube.getFace(Cube.BACK).getFaceColour(),"B");
+        colourToFace.put(cube.getFace(Cube.FRONT).getFaceColour(),"F");
+        colourToFace.put(cube.getFace(Cube.RIGHT).getFaceColour(),"R");
+        colourToFace.put(cube.getFace(Cube.LEFT).getFaceColour(),"L");
+        colourToFace.put(cube.getFace(Cube.TOP).getFaceColour(),"U");
+        colourToFace.put(cube.getFace(Cube.BOTTOM).getFaceColour(),"D");
 
         return colourToFace;
     }
@@ -85,7 +85,7 @@ public class Util {
     public static String myCubeToKociemba(Cube cube){
 
         StringBuilder kociemba = new StringBuilder();
-        Map<Square.Colour, String> colourToFace = getColourFaceMap(cube);
+        Map<Colour, String> colourToFace = getColourFaceMap(cube);
 
         /**
          * Face[] faces = {top, right, front, bottom, left, back};
@@ -105,8 +105,8 @@ public class Util {
                 }
             }
 
-            for(Square square : conv){
-                kociemba.append(colourToFace.get(square.getColour()));
+            for(Colour square : conv){
+                kociemba.append(colourToFace.get(square));
             }
 
             count++;

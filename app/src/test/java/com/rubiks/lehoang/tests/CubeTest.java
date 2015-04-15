@@ -1,7 +1,6 @@
 package com.rubiks.lehoang.tests;
 
 import com.rubiks.lehoang.rubikssolver.Cube;
-import com.rubiks.lehoang.rubikssolver.Square;
 import com.rubiks.lehoang.rubikssolver.Util;
 
 import junit.framework.Assert;
@@ -16,7 +15,6 @@ import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 
 import static com.rubiks.lehoang.rubikssolver.Cube.*;
-import static com.rubiks.lehoang.rubikssolver.Square.Colour;
 
 /**
  * Created by LeHoang on 07/04/2015.
@@ -29,15 +27,39 @@ public class CubeTest extends TestCase {
     }
 
 
-    public void testCubeRightTurnFromSolved(){
-        String config =
-        "Top\nB B B\nB B B\nB B B\n" +
-        "Bottom\nG G G\nG G G\nG G G\n" +
-        "Front\nR R R\nR R R\nR R R\n" +
-        "Right\nY Y Y\nY Y Y\nY Y Y\n"+
-        "Left\nW W W\nW W W\nW W W\n"+
-        "Back\nO O O\nO O O\nO O O\n";
 
+    public void testCompactEncode() throws Exception {
+        Cube cube = new Cube(new BufferedReader(new StringReader("Top\nW O G\nG B W\nO O G\n" +
+                "Bottom\nR W B\nB G B\nO W B\n" +
+                "Front\nG Y R\nO R Y\nG G R\n" +
+                "Right\nY O W\nY Y B\nO W W\n" +
+                "Left\nO Y Y\nR W B\nY R W\n" +
+                "Back\nB G R\nG O R\nB R Y\n")));
+
+        String encoding = cube.encodeAllEdges();
+
+        String other = Cube.quickEncodeAll(cube.toCompactString());
+
+        Assert.assertEquals(encoding, other);
+    }
+    public void testCompactStringTwice(){
+        String config = "GYYRBBRBBOYYOWRRRGWWOYYGGGROOWGGWYRBBOOBRGYYRBBWOOWWWG";
+
+        Cube cube = new Cube(config);
+
+        Cube cube2 = new Cube(cube.toCompactString());
+
+        Assert.assertEquals(cube.toCompactString(),cube2.toCompactString());
+    }
+    public void testCompactStringFromSolved(){
+        String config = Cube.SOLVED_COMPACT;
+
+        Cube cube = new Cube(config);
+        String expected = "BBBBBBBBBWWWWWWWWWYYYYYYYYYGGGGGGGGGRRRRRRRRROOOOOOOOO";
+        Assert.assertEquals(expected, cube.toCompactString());
+    }
+    public void testCubeRightTurnFromSolved(){
+        String config = Cube.SOLVED_COMPACT;
 
         String expected =
         "Top\nB B R\nB B R\nB B R\n"+
@@ -53,13 +75,7 @@ public class CubeTest extends TestCase {
 
 
     public void testCubeLeftTurnFromSolved(){
-        String config =
-        "Top\nB B B\nB B B\nB B B\n" +
-        "Bottom\nG G G\nG G G\nG G G\n" +
-        "Front\nR R R\nR R R\nR R R\n" +
-        "Right\nY Y Y\nY Y Y\nY Y Y\n"+
-        "Left\nW W W\nW W W\nW W W\n"+
-        "Back\nO O O\nO O O\nO O O\n";
+        String config = Cube.SOLVED_COMPACT;
 
         String expected =
         "Top\nO B B\nO B B\nO B B\n" +
@@ -74,14 +90,7 @@ public class CubeTest extends TestCase {
 
 
     public void testCubeTopTurnFromSolved(){
-        String config =
-                "Top\nB B B\nB B B\nB B B\n" +
-                        "Bottom\nG G G\nG G G\nG G G\n" +
-                        "Front\nR R R\nR R R\nR R R\n" +
-                        "Right\nY Y Y\nY Y Y\nY Y Y\n"+
-                        "Left\nW W W\nW W W\nW W W\n"+
-                        "Back\nO O O\nO O O\nO O O\n";
-
+        String config = Cube.SOLVED_COMPACT;
         String expected =
                 "Top\nB B B\nB B B\nB B B\n" +
                         "Bottom\nG G G\nG G G\nG G G\n" +
@@ -94,13 +103,7 @@ public class CubeTest extends TestCase {
     }
 
     public void testCubeDownTurnFromSolved(){
-        String config =
-                "Top\nB B B\nB B B\nB B B\n" +
-                        "Bottom\nG G G\nG G G\nG G G\n" +
-                        "Front\nR R R\nR R R\nR R R\n" +
-                        "Right\nY Y Y\nY Y Y\nY Y Y\n"+
-                        "Left\nW W W\nW W W\nW W W\n"+
-                        "Back\nO O O\nO O O\nO O O\n";
+        String config = Cube.SOLVED_COMPACT;
 
         String expected =
                 "Top\nB B B\nB B B\nB B B\n" +
@@ -114,13 +117,7 @@ public class CubeTest extends TestCase {
     }
 
     public void testCubeBackTurnFromSolved(){
-        String config =
-                "Top\nB B B\nB B B\nB B B\n" +
-                        "Bottom\nG G G\nG G G\nG G G\n" +
-                        "Front\nR R R\nR R R\nR R R\n" +
-                        "Right\nY Y Y\nY Y Y\nY Y Y\n"+
-                        "Left\nW W W\nW W W\nW W W\n"+
-                        "Back\nO O O\nO O O\nO O O\n";
+        String config = Cube.SOLVED_COMPACT;
 
         String expected =
                 "Top\nY Y Y\nB B B\nB B B\n" +
@@ -134,14 +131,7 @@ public class CubeTest extends TestCase {
     }
 
     public void testCubeFrontTurnFromSolved(){
-        String config =
-                "Top\nB B B\nB B B\nB B B\n" +
-                        "Bottom\nG G G\nG G G\nG G G\n" +
-                        "Front\nR R R\nR R R\nR R R\n" +
-                        "Right\nY Y Y\nY Y Y\nY Y Y\n"+
-                        "Left\nW W W\nW W W\nW W W\n"+
-                        "Back\nO O O\nO O O\nO O O\n";
-
+        String config = Cube.SOLVED_COMPACT;
         String expected =
                 "Top\nB B B\nB B B\nW W W\n" +
                         "Bottom\nG G G\nG G G\nY Y Y\n" +
@@ -154,15 +144,7 @@ public class CubeTest extends TestCase {
     }
 
     public void testCubeRightPrimeFromSolved(){
-        String config =
-                "Top\nB B B\nB B B\nB B B\n" +
-                        "Bottom\nG G G\nG G G\nG G G\n" +
-                        "Front\nR R R\nR R R\nR R R\n" +
-                        "Right\nY Y Y\nY Y Y\nY Y Y\n"+
-                        "Left\nW W W\nW W W\nW W W\n"+
-                        "Back\nO O O\nO O O\nO O O\n";
-
-
+        String config = Cube.SOLVED_COMPACT;
         String expected =
                 "Top\nB B O\nB B O\nB B O\n"+
                         "Bottom\nG G R\nG G R\nG G R\n"+
@@ -177,13 +159,7 @@ public class CubeTest extends TestCase {
 
 
     public void testCubeLeftPrimeTurnFromSolved(){
-        String config =
-                "Top\nB B B\nB B B\nB B B\n" +
-                        "Bottom\nG G G\nG G G\nG G G\n" +
-                        "Front\nR R R\nR R R\nR R R\n" +
-                        "Right\nY Y Y\nY Y Y\nY Y Y\n"+
-                        "Left\nW W W\nW W W\nW W W\n"+
-                        "Back\nO O O\nO O O\nO O O\n";
+        String config = Cube.SOLVED_COMPACT;
 
         String expected =
                 "Top\nR B B\nR B B\nR B B\n" +
@@ -197,13 +173,7 @@ public class CubeTest extends TestCase {
     }
 
     public void testCubeTopPrimeTurnFromSolved(){
-        String config =
-                "Top\nB B B\nB B B\nB B B\n" +
-                        "Bottom\nG G G\nG G G\nG G G\n" +
-                        "Front\nR R R\nR R R\nR R R\n" +
-                        "Right\nY Y Y\nY Y Y\nY Y Y\n"+
-                        "Left\nW W W\nW W W\nW W W\n"+
-                        "Back\nO O O\nO O O\nO O O\n";
+        String config = Cube.SOLVED_COMPACT;
 
         String expected =
                 "Top\nB B B\nB B B\nB B B\n" +
@@ -217,13 +187,7 @@ public class CubeTest extends TestCase {
     }
 
     public void testCubeDownPrimeTurnFromSolved(){
-        String config =
-                "Top\nB B B\nB B B\nB B B\n" +
-                        "Bottom\nG G G\nG G G\nG G G\n" +
-                        "Front\nR R R\nR R R\nR R R\n" +
-                        "Right\nY Y Y\nY Y Y\nY Y Y\n"+
-                        "Left\nW W W\nW W W\nW W W\n"+
-                        "Back\nO O O\nO O O\nO O O\n";
+        String config = Cube.SOLVED_COMPACT;
 
         String expected =
                 "Top\nB B B\nB B B\nB B B\n" +
@@ -237,13 +201,7 @@ public class CubeTest extends TestCase {
     }
 
     public void testCubeBackPrimeTurnFromSolved(){
-        String config =
-                "Top\nB B B\nB B B\nB B B\n" +
-                        "Bottom\nG G G\nG G G\nG G G\n" +
-                        "Front\nR R R\nR R R\nR R R\n" +
-                        "Right\nY Y Y\nY Y Y\nY Y Y\n"+
-                        "Left\nW W W\nW W W\nW W W\n"+
-                        "Back\nO O O\nO O O\nO O O\n";
+        String config = Cube.SOLVED_COMPACT;
 
         String expected =
                 "Top\nW W W\nB B B\nB B B\n" +
@@ -257,13 +215,7 @@ public class CubeTest extends TestCase {
     }
 
     public void testCubeFrontPrimeTurnFromSolved(){
-        String config =
-                "Top\nB B B\nB B B\nB B B\n" +
-                        "Bottom\nG G G\nG G G\nG G G\n" +
-                        "Front\nR R R\nR R R\nR R R\n" +
-                        "Right\nY Y Y\nY Y Y\nY Y Y\n"+
-                        "Left\nW W W\nW W W\nW W W\n"+
-                        "Back\nO O O\nO O O\nO O O\n";
+        String config = Cube.SOLVED_COMPACT;
 
         String expected =
                 "Top\nB B B\nB B B\nY Y Y\n" +
@@ -277,13 +229,7 @@ public class CubeTest extends TestCase {
     }
 
     public void testSequenceOfMovesSimple(){
-        String config =
-                "Top\nB B B\nB B B\nB B B\n" +
-                        "Bottom\nG G G\nG G G\nG G G\n" +
-                        "Front\nR R R\nR R R\nR R R\n" +
-                        "Right\nY Y Y\nY Y Y\nY Y Y\n"+
-                        "Left\nW W W\nW W W\nW W W\n"+
-                        "Back\nO O O\nO O O\nO O O\n";
+        String config = Cube.SOLVED_COMPACT;
 
         String expected =
                 "Top\nY Y B\nB B B\nW W G\n" +
@@ -297,13 +243,7 @@ public class CubeTest extends TestCase {
     }
 
     public void testSequenceOfMovesComplex(){
-        String config =
-                "Top\nB B B\nB B B\nB B B\n" +
-                        "Bottom\nG G G\nG G G\nG G G\n" +
-                        "Front\nR R R\nR R R\nR R R\n" +
-                        "Right\nY Y Y\nY Y Y\nY Y Y\n"+
-                        "Left\nW W W\nW W W\nW W W\n"+
-                        "Back\nO O O\nO O O\nO O O\n";
+        String config = Cube.SOLVED_COMPACT;
 
         String expected =
                 "Top\nW O G\nG B W\nO O G\n" +
@@ -386,10 +326,10 @@ public class CubeTest extends TestCase {
     }
 
     public void setConfig(String given, String expected, String sequence){
-        Cube cube = null;
+        Cube cube = new Cube(given);
         Cube expectedCube = null;
         try {
-            cube = new Cube(new BufferedReader(new StringReader(given)));
+
             expectedCube = new Cube(new BufferedReader(new StringReader(expected)));
         }catch(Exception e){
             e.printStackTrace();
