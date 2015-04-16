@@ -628,10 +628,10 @@ public class CompactCube {
      * @return
      */
     public static int encode6Of12Edges(byte[] edges6Of12, int start){
-        byte[] edgePerms = new byte[edges6Of12.length];
-        byte[] edgeOri = new byte[edges6Of12.length];
+        byte[] edgePerms = new byte[6];
+        byte[] edgeOri = new byte[6];
 
-        for(int i = 0; i < edges6Of12.length; i++){
+        for(int i = 0; i < 6; i++){
             edgePerms[i] = getEdgePerm(edges6Of12[i+start]);
             edgeOri[i] = getEdgeOri(edges6Of12[i+start]);
         }

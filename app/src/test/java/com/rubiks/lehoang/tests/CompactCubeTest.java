@@ -294,7 +294,7 @@ public class CompactCubeTest extends TestCase {
 
         assertEquals(15, index);
     }
-
+/*
     public void testEncode6Of12(){
         byte[] test = {0,2,4,6,8,10};
 
@@ -315,7 +315,7 @@ public class CompactCubeTest extends TestCase {
         int encoding = CompactCube.encode6Of12Edges(test);
 
         assertEquals(42577919, encoding);
-    }
+    }*/
 
     /*
     public void testencodeCorners(){

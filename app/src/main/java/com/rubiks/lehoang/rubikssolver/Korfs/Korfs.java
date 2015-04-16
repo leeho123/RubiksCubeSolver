@@ -164,12 +164,12 @@ public class Korfs {
         System.out.println("Done! Writing to file...");
         Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file)));
         for(int i = 0; i < states.length; i++){
-            writer.write(Integer.toString((int) states.getIndex(i)) + '\n');
+            writer.write(Integer.toString(states.getIndex(i)) + '\n');
         }
         writer.close();
     }
 
-    public static void generateEdgeHeuristics2(File firstFile, File secondFile){
+    public static void generateEdgeHeuristics2(File firstFile, File secondFile) throws IOException {
         NibbleArray firstStates = new NibbleArray(42577920);
         NibbleArray secondStates = new NibbleArray(42577920);
 
@@ -178,12 +178,15 @@ public class Korfs {
 
         workQueue.add(state);
 
-        int count = 1;
+        int firstElemCount = 1;
+        int secondElemCount = 1;
         int firstMoveCount = 0;
         int secondMoveCount = 0;
         int firstEdgeEncoding = 0;
         int secondEdgeEncoding = 0;
         long usedMemory = 0;
+        boolean add = false;
+        boolean runGC = false;
 
         while(!workQueue.isEmpty()){
             state = workQueue.poll();
@@ -191,13 +194,72 @@ public class Korfs {
             secondMoveCount = secondStates.getIndex(CompactCube.encodeSecond(state));
 
             for(int move = 0; move < CompactCube.NUMMOVES; move++){
-                
+
+                CompactCube.moveEdges(move, state);
+
+                firstEdgeEncoding = CompactCube.encodeFirst(state);
+                secondEdgeEncoding = CompactCube.encodeSecond(state);
+
+                /*
+                 * If the state has not been seen before or we have a move count lower than what
+                 * we had before then replace.
+                 */
+                if((firstStates.getIndex(firstEdgeEncoding) > (firstMoveCount + 1) ||
+                        firstStates.getIndex(firstEdgeEncoding) == 0)
+                        && firstEdgeEncoding != CompactCube.firstEdgeSolved
+                        ){
+                    add = true;
+                    firstElemCount++;
+                    if(firstElemCount % 1000000 == 0){
+                        usedMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+                        System.out.println("First:" + firstElemCount + " of 42577920 "+ "Used mem: "+ usedMemory);
+                    }
+                    firstStates.setIndex(firstEdgeEncoding, (firstMoveCount + 1));
+                }
+
+                if((secondStates.getIndex(secondEdgeEncoding) > (secondMoveCount + 1) ||
+                    secondStates.getIndex(secondEdgeEncoding) == 0) &&
+                           secondEdgeEncoding != CompactCube.secondEdgeSolved){
+                    add = true;
+                    secondElemCount++;
+                    if(secondElemCount % 1000000 == 0) {
+                        usedMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+                        System.out.println("Second:" + secondElemCount + " of 42577920 " + "Used mem: " + usedMemory);
+                    }
+                    secondStates.setIndex(secondEdgeEncoding, (secondMoveCount + 1));
+                }
+                /// Add state to workqueue if anything new was seen
+                if(add){
+                    add = false;
+                    workQueue.add(Arrays.copyOf(state, state.length));
+                }
+
+                if(runGC){
+                    runGC = false;
+                    try {
+                        Thread.sleep(5000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    System.gc();
+                }
+
+                //Move back
+                CompactCube.moveEdges(CompactCube.INV_MOVES[move], state);
             }
         }
+        System.out.println("Done! Writing to file...");
+        Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(firstFile)));
+        for(int i = 0; i < firstStates.length; i++){
+            writer.write(Integer.toString(firstStates.getIndex(i)) + '\n');
+        }
+        writer.close();
 
-
-
-
+        Writer writer2 = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(secondFile)));
+        for(int i = 0; i < secondStates.length; i++){
+            writer2.write(Integer.toString(secondStates.getIndex(i)) + '\n');
+        }
+        writer2.close();
     }
 /*
     public static void generateEdgeHeuristics(File firstFile, File secondFile) throws Exception{
@@ -351,7 +413,11 @@ public class Korfs {
     }
 
     public static void main(String[] args) throws IOException {
-        File file = new File(Korfs.CORNERS_FILE_NAME);
-        Korfs.generateCornerHeuristics2(file);
+        //File file = new File(Korfs.CORNERS_FILE_NAME);
+        //Korfs.generateCornerHeuristics2(file);
+
+        File file1 = new File(Korfs.FIRST_EDGE_FILE_NAME);
+        File file2 = new File(Korfs.SECOND_EDGE_FILE_NAME);
+        Korfs.generateEdgeHeuristics2(file1, file2);
     }
 }
