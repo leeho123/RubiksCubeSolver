@@ -12,6 +12,8 @@ public class CompactCube {
     /**
      * Commonly used encodings
      */
+    public static final int NO_CORNER_ENCODINGS = 88179840;
+    public static final int NO_EDGE_ENCODINGS = 42577920;
     public static final int secondEdgeSolved = 23442432;
     public static final int firstEdgeSolved = 0;
     public static final int cornersSolved = 0;
@@ -46,27 +48,6 @@ public class CompactCube {
                                                     "BLU", "RBU", "LFU", "FRU", "LBD", "BRD", "FLD", "RFD"};
 
 
-    /**
-     * {"UBL0 "URB1, "ULF2, "UFR3", "DLB4", "DBR5", "DFL6", "DRF7",
-     "LUB8", "BUR9", "FUL10", "RUF11", "BDL12", "RDB13", "LDF14", "FDR15",
-     "BLU16", "RBU17", "LFU18", "FRU19", "LBD20", "BRD21", "FLD22", "RFD23"};
-
-     "UB0","BU1",
-     "UL2","LU3",
-     "UR4","RU5",
-     "UF6","FU7",
-     "LB8","BL9",
-     "RB10","BR11",
-     "LF12","FL13",
-     "RF14","FR15",
-     "DB16","BD17",
-     "DL18","LD19",
-     "DR20","RD21",
-     "DF22","FD23"
-
-
-     */
-
     private static Map<String, Byte> humanToCompMap;{
         humanToCompMap = new HashMap<String, Byte>();
         for(int i = 0 ; i < PO; i++){
@@ -88,6 +69,22 @@ public class CompactCube {
         }
     }
 
+
+    public static final byte[] SOLVED_CORNERS;
+    public static final byte[] SOLVED_EDGES;
+    static{
+        SOLVED_CORNERS = new byte[8];
+        for(int i = 0; i < SOLVED_CORNERS.length; i++){
+            SOLVED_CORNERS[i] = (byte) getCornerVal(i,0);
+        }
+
+        SOLVED_EDGES = new byte[12];
+        for(int i = 0; i < SOLVED_EDGES.length; i++){
+            SOLVED_EDGES[i] = (byte) getEdgeVal(i,0);
+        }
+    }
+
+
     public static final int U = 0;
     public static final int U2= 1;
     public static final int UPRIME = 2;
@@ -106,6 +103,13 @@ public class CompactCube {
     public static final int L = 15;
     public static final int L2 = 16;
     public static final int LPRIME = 17;
+
+    public static final String[] MoveToString= {"U","U2","U'",
+                                                "F","F2","F'",
+                                                "R","R2","R'",
+                                                "D","D2","D'",
+                                                "B","B2","B'",
+                                                "L","L2","L'"};
 
     public static final int[] INV_MOVES;
 
@@ -215,7 +219,7 @@ public class CompactCube {
      *
      * First 3 bits determine perm, next 2 bits determine orientation
      */
-    private byte[] corners = new byte[8];
+    private byte[] corners;
 
 
     /**
@@ -225,7 +229,7 @@ public class CompactCube {
      * edge orientations flip with R or L moves
      * First bit determines orientation, next 4 bits determine perm
      */
-    private byte[] edges = new byte[12];
+    private byte[] edges;
 
     /**
      * Gets an edges value based on its orientation and permutation
@@ -313,7 +317,7 @@ public class CompactCube {
      * @param
      */
     public CompactCube(String strRep){
-
+        edges = new byte[12];
         //Edges
         StringBuilder builder = new StringBuilder();
         for(int i = 0; i < edges.length; i++){
@@ -333,6 +337,7 @@ public class CompactCube {
             builder.setLength(0);
         }
 
+        corners = new byte[8];
         //Corners
         for(int i = 0; i < corners.length;  i++){
             for(int j = 0; j < 3; j++){
@@ -394,15 +399,9 @@ public class CompactCube {
      * Initialise to solved cube
      */
     public CompactCube(){
-        for(int i = 0; i < edges.length; i++){
-            edges[i] = (byte) getEdgeVal(i,0);
-        }
-
-        for(int i = 0; i < corners.length; i++){
-            corners[i] = (byte) getCornerVal(i,0);
-        }
+        edges = Arrays.copyOf(SOLVED_EDGES, SOLVED_EDGES.length);
+        corners = Arrays.copyOf(SOLVED_CORNERS, SOLVED_CORNERS.length);
     }
-
 
     /**
      * Peform a move 0 - 17. Total of 18 moves U, U2, U',R ,R2, R'....
@@ -537,6 +536,9 @@ public class CompactCube {
         return result;
     }
 
+    public int encodeCorners(){
+        return encodeCorners(corners);
+    }
 
     public static int encodeCorners(byte[] corners){
         //Extract permutations
@@ -613,6 +615,13 @@ public class CompactCube {
         return oriNum + permNum * 4096;
     }
 
+    public int encodeFirst(){
+        return encodeFirst(edges);
+    }
+
+    public int encodeSecond(){
+        return encodeSecond(edges);
+    }
     public static int encodeFirst(byte[] edges){
         return encode6Of12Edges(edges,0);
     }
@@ -640,5 +649,24 @@ public class CompactCube {
         int oriNum = getBase10FromBaseN(edgeOri,2);
 
         return oriNum + perm * 64;
+    }
+
+    public static boolean isSolved(CompactCube cube){
+        return Arrays.equals(cube.corners, SOLVED_CORNERS) &&
+                Arrays.equals(cube.edges, SOLVED_EDGES);
+    }
+
+    @Override
+    public boolean equals(Object b){
+        CompactCube cube = (CompactCube) b;
+        return Arrays.equals(corners, cube.corners) &&
+                 Arrays.equals(edges, cube.edges);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Arrays.hashCode(corners);
+        result = 31 * result + Arrays.hashCode(edges);
+        return result;
     }
 }
