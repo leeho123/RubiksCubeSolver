@@ -265,13 +265,14 @@ public class CompactCubeTest extends TestCase {
         assertEquals(63, encoding);
     }
 
+    /*
     public void testEncodeCorners(){
         CompactCube cube = new CompactCube();
-        int result = cube.encodeCorners();
+        int result = CompactCube.encodeCorners();
 
         assertEquals(0, result);
     }
-
+    */
     public void testEncodeEdges(){
         CompactCube cube = new CompactCube();
 
@@ -302,6 +303,13 @@ public class CompactCubeTest extends TestCase {
         assertEquals(0, encoding);
     }
 
+    public void testEncode6Of12Other(){
+        byte[] test = {12,14,16, 18,20,22};
+        int encoding = CompactCube.encode6Of12Edges(test);
+
+        assertEquals(0, encoding);
+    }
+
     public void testEncode6Of12Second(){
         byte[] test = {23,21,19,17,15,13};
         int encoding = CompactCube.encode6Of12Edges(test);
@@ -309,10 +317,11 @@ public class CompactCubeTest extends TestCase {
         assertEquals(42577919, encoding);
     }
 
+    /*
     public void testencodeCorners(){
         CompactCube cube = new CompactCube();
         cube.move(1);
         int encoding = cube.encodeCorners();
 
-    }
+    }*/
 }

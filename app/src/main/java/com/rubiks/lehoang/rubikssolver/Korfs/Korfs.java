@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayDeque;
+import java.util.Arrays;
 import java.util.Queue;
 
 /**
@@ -85,49 +86,116 @@ public class Korfs {
         return Integer.toString(minOverDepth);
     }
 */
+
+    /**
+     * Used instead of byte to save half the space since we only need 4 bits per move count
+     */
+    public static class NibbleArray{
+        byte[] arr;
+        int length;
+        public NibbleArray(int size){
+            arr = new byte[size/2];
+            length = size;
+        }
+
+        public void setIndex(int index, int val){
+            int shift = (index %2 ) * 4;
+            byte clear = (byte) (15 << shift); //00001111
+
+            //Clear the space
+            arr[index/2] = (byte) (arr[index/2] & clear);
+            //Set the value
+            arr[index/2] = (byte) (arr[index/2] ^ (val << (4-shift)));
+        }
+
+        public int getIndex(int index){
+            int shift = (1-(index % 2)) * 4;
+            int mask =  (15 << shift); //00001111
+            byte val = (byte) ((arr[index/2] & mask) >>> shift);
+            return val & 0xFF;
+        }
+    }
     public static void generateCornerHeuristics2(File file) throws IOException {
-        Queue<CompactCube> workQueue = new ArrayDeque<CompactCube>();
+        Queue<byte[]> workQueue = new ArrayDeque<byte[]>();
 
-        //For storing all states of corners
-        int[] states = new int[88179840];
+        //For storing all state move counts of corners. Only need 1 byte since
+        //move count will never exceed 11 and byte is smallest unit we can have
 
-        workQueue.add(new CompactCube());
+        NibbleArray states = new NibbleArray(88179840);
+        byte[] state = {0,1,2,3,4,5,6,7};
+        workQueue.add(state);
         int count = 1;
+        int moveCount = 0;
+        int cornerEncoding = 0;
+        long usedMemory = 0;
         while(!workQueue.isEmpty()){
-            CompactCube cube = workQueue.poll();
-            int moveCount = states[cube.encodeCorners()];
+            state = workQueue.poll();
+            moveCount = states.getIndex(CompactCube.encodeCorners(state));
 
             for(int move = 0; move < CompactCube.NUMMOVES; move++){
 
-                CompactCube newCube = new CompactCube(cube);
-                newCube.move(move);
 
-                int cornerEncoding = newCube.encodeCorners();
+                CompactCube.moveCorners(move, state);
+
+                cornerEncoding = CompactCube.encodeCorners(state);
 
                 //Does not exist already and the encoding is not solved
-                if(states[cornerEncoding] == 0 && cornerEncoding != 0){
+                if(states.getIndex(cornerEncoding) == 0 && cornerEncoding != 0){
                     count++;
                     if(count % 1000000 == 0){
-                        System.out.println(count + " of 88179840");
-                    }
-                    workQueue.add(newCube);
+                        try {
+                            Thread.sleep(5000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        System.gc();
 
-                    states[cornerEncoding] = moveCount + 1;
+                        usedMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+                        System.out.println(count + " of 88179840 "+ "Used mem: "+ usedMemory);
+                    }
+                    workQueue.add(Arrays.copyOf(state, state.length));
+
+                    states.setIndex(cornerEncoding, (moveCount + 1));
                 }
+                CompactCube.moveCorners(CompactCube.INV_MOVES[move], state);
             }
         }
 
         System.out.println("Done! Writing to file...");
         Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file)));
         for(int i = 0; i < states.length; i++){
-            writer.write(states[i]);
+            writer.write(Integer.toString((int) states.getIndex(i)) + '\n');
         }
         writer.close();
     }
 
     public static void generateEdgeHeuristics2(File firstFile, File secondFile){
-        int[] firstStates = new int[42577920];
-        int[] secondStates = new int[42577920];
+        NibbleArray firstStates = new NibbleArray(42577920);
+        NibbleArray secondStates = new NibbleArray(42577920);
+
+        Queue<byte[]> workQueue = new ArrayDeque<byte[]>();
+        byte[] state = {0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22};
+
+        workQueue.add(state);
+
+        int count = 1;
+        int firstMoveCount = 0;
+        int secondMoveCount = 0;
+        int firstEdgeEncoding = 0;
+        int secondEdgeEncoding = 0;
+        long usedMemory = 0;
+
+        while(!workQueue.isEmpty()){
+            state = workQueue.poll();
+            firstMoveCount = firstStates.getIndex(CompactCube.encodeFirst(state));
+            secondMoveCount = secondStates.getIndex(CompactCube.encodeSecond(state));
+
+            for(int move = 0; move < CompactCube.NUMMOVES; move++){
+                
+            }
+        }
+
+
 
 
     }
@@ -268,17 +336,22 @@ public class Korfs {
 
         public void setSeen(int index){
             byte offset = (byte) (index % 8);
-            byte mask = (byte) (256 >>> offset);
+            byte mask = (byte) (128 >>> offset);
             seen[index/8] = (byte) (seen[index/8] ^ mask);
         }
 
         public boolean isSeen(int index){
             byte bucket = seen[index/8];
             byte offset = (byte) (index % 8);
-            byte mask = (byte) (256 >>> offset);
+            byte mask = (byte) (128 >>> offset);
             byte result = (byte) (seen[index/8] & 0);
             return result != 0;
         }
 
+    }
+
+    public static void main(String[] args) throws IOException {
+        File file = new File(Korfs.CORNERS_FILE_NAME);
+        Korfs.generateCornerHeuristics2(file);
     }
 }

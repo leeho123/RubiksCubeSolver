@@ -66,7 +66,7 @@ public class Node implements Comparable<Node> {
     }
 
     public static int getHeuristic(Cube cube) throws UnsupportedEncodingException {
-        int[] heuristics = new int[3];
+        int[] heuristics = new int[3];/*
         if(!Korfs.secondEdgeMap.containsKey(cube.encode(Cube.secondEdges))){
             System.out.println(cube.encode(Cube.secondEdges));
         }
@@ -77,7 +77,7 @@ public class Node implements Comparable<Node> {
         heuristics[0] = Korfs.cornerMap.get(cube.encodeCorners());
         heuristics[1] = Korfs.firstEdgeMap.get(cube.encode(Cube.firstEdges));
         heuristics[2] = Korfs.secondEdgeMap.get(cube.encode(Cube.secondEdges));
-
+    */
         int estGoal = Util.max(heuristics);
         return estGoal;
     }

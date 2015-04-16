@@ -10,6 +10,12 @@ import java.util.Map;
 public class CompactCube {
 
     /**
+     * Commonly used encodings
+     */
+    public static final int secondEdgeSolved = 23442432;
+    public static final int firstEdgeSolved = 0;
+    public static final int cornersSolved = 0;
+    /**
      * Number of corner perms and orientations 8 * 3
      * Number of edge  perms and orientations 12 * 2
      */
@@ -61,8 +67,7 @@ public class CompactCube {
 
      */
 
-    private static Map<String, Byte> humanToCompMap;
-    {
+    private static Map<String, Byte> humanToCompMap;{
         humanToCompMap = new HashMap<String, Byte>();
         for(int i = 0 ; i < PO; i++){
             humanToCompMap.put(byteToStringCornerMap[i], (byte) i);
@@ -83,24 +88,26 @@ public class CompactCube {
         }
     }
 
-    public static int U = 0;
-    public static int U2= 1;
-    public static int UPRIME = 2;
-    public static int F = 3;
-    public static int F2 =4;
-    public static int FPRIME =5;
-    public static int R = 6;
-    public static int R2 = 7;
-    public static int RPRIME = 8;
-    public static int D = 9;
-    public static int D2 = 10;
-    public static int DPRIME = 11;
-    public static int B = 12;
-    public static int B2 = 13;
-    public static int BPRIME = 14;
-    public static int L = 15;
-    public static int L2 = 16;
-    public static int LPRIME = 17;
+    public static final int U = 0;
+    public static final int U2= 1;
+    public static final int UPRIME = 2;
+    public static final int F = 3;
+    public static final int F2 =4;
+    public static final int FPRIME =5;
+    public static final int R = 6;
+    public static final int R2 = 7;
+    public static final int RPRIME = 8;
+    public static final int D = 9;
+    public static final int D2 = 10;
+    public static final int DPRIME = 11;
+    public static final int B = 12;
+    public static final int B2 = 13;
+    public static final int BPRIME = 14;
+    public static final int L = 15;
+    public static final int L2 = 16;
+    public static final int LPRIME = 17;
+
+    public static final int[] INV_MOVES;
 
     /**
      * So we can quickly search if a move flips an edge
@@ -132,13 +139,19 @@ public class CompactCube {
      * Shows the full transition of a move on a particular faclet of a corner.
      * Defaults to nothing changing at all
      */
-    private static byte[][] cornerTransitions;
+    private static final byte[][] cornerTransitions;
 
     /**
      * Shows a full transition of a move on a particular faclet of an edge
      * Defaults to nothing changing at all
      */
-    private static byte[][] edgeTransitions;{
+    private static final byte[][] edgeTransitions;
+    static{
+        INV_MOVES = new int[NUMMOVES];
+        for(int i = 0; i < NUMMOVES; i++){
+            INV_MOVES[i] = 3 * (i/3) + (NUMMOVES -i -1) % 3;
+        }
+
         cornerTransitions = new byte[NUMMOVES][PO];
         edgeTransitions = new byte[NUMMOVES][PO];
         for(int m = 0; m < NUMMOVES; m++){
@@ -239,7 +252,7 @@ public class CompactCube {
     /**
      * Gives the indexes for the edges in the strRep
      */
-    private static int[][] convEdgeLookup = {{1, 46}, {46,1}, //UB BU
+    private static final int[][] convEdgeLookup = {{1, 46}, {46,1}, //UB BU
                                              {3, 37}, {37,3}, //UL LU
                                              {5, 10}, {10,5}, //UR RU
                                              {7, 19}, {19,7}, //UF FU
@@ -256,7 +269,7 @@ public class CompactCube {
     /**
      * Gives the indexes for the corners in the strRep
      */
-    private static int[][] convCornerLookup = {{0,47,36},//UBL
+    private static final int[][] convCornerLookup = {{0,47,36},//UBL
                                                {2,11,45},//URB
                                                {6,38,18},//ULF
                                                {8,20,9},//UFR
@@ -393,6 +406,7 @@ public class CompactCube {
 
     /**
      * Peform a move 0 - 17. Total of 18 moves U, U2, U',R ,R2, R'....
+     * We dont want to call any methods here to improve the speed
      * @param move
      */
     public void move(int move){
@@ -418,6 +432,32 @@ public class CompactCube {
         edges[9] = edgeTransitions[move][edges[9]];
         edges[10] = edgeTransitions[move][edges[10]];
         edges[11] = edgeTransitions[move][edges[11]];
+    }
+
+    public static void moveEdges(int move, byte[] edges){
+        edges[0] = edgeTransitions[move][edges[0]];
+        edges[1] = edgeTransitions[move][edges[1]];
+        edges[2] = edgeTransitions[move][edges[2]];
+        edges[3] = edgeTransitions[move][edges[3]];
+        edges[4] = edgeTransitions[move][edges[4]];
+        edges[5] = edgeTransitions[move][edges[5]];
+        edges[6] = edgeTransitions[move][edges[6]];
+        edges[7] = edgeTransitions[move][edges[7]];
+        edges[8] = edgeTransitions[move][edges[8]];
+        edges[9] = edgeTransitions[move][edges[9]];
+        edges[10] = edgeTransitions[move][edges[10]];
+        edges[11] = edgeTransitions[move][edges[11]];
+    }
+    public static void moveCorners(int move, byte[] corners){
+
+        corners[0] = cornerTransitions[move][corners[0]];
+        corners[1] = cornerTransitions[move][corners[1]];
+        corners[2] = cornerTransitions[move][corners[2]];
+        corners[3] = cornerTransitions[move][corners[3]];
+        corners[4] = cornerTransitions[move][corners[4]];
+        corners[5] = cornerTransitions[move][corners[5]];
+        corners[6] = cornerTransitions[move][corners[6]];
+        corners[7] = cornerTransitions[move][corners[7]];
     }
 
     /**
@@ -498,7 +538,7 @@ public class CompactCube {
     }
 
 
-    public int encodeCorners(){
+    public static int encodeCorners(byte[] corners){
         //Extract permutations
         byte[] cornerPerms = new byte[corners.length];
         byte[] cornerOri = new byte[corners.length];
@@ -573,12 +613,12 @@ public class CompactCube {
         return oriNum + permNum * 4096;
     }
 
-    public int encodeFirst(){
-        return encode6Of12Edges(Arrays.copyOfRange(edges, 0, 6));
+    public static int encodeFirst(byte[] edges){
+        return encode6Of12Edges(edges,0);
     }
 
-    public int encodeSecond(){
-        return encode6Of12Edges(Arrays.copyOfRange(edges,6,12));
+    public static int encodeSecond(byte[] edges){
+        return encode6Of12Edges(edges,6);
 
     }
 
@@ -587,13 +627,13 @@ public class CompactCube {
      * @param edges6Of12
      * @return
      */
-    public static int encode6Of12Edges(byte[] edges6Of12){
+    public static int encode6Of12Edges(byte[] edges6Of12, int start){
         byte[] edgePerms = new byte[edges6Of12.length];
         byte[] edgeOri = new byte[edges6Of12.length];
 
         for(int i = 0; i < edges6Of12.length; i++){
-            edgePerms[i] = getEdgePerm(edges6Of12[i]);
-            edgeOri[i] = getEdgeOri(edges6Of12[i]);
+            edgePerms[i] = getEdgePerm(edges6Of12[i+start]);
+            edgeOri[i] = getEdgeOri(edges6Of12[i+start]);
         }
 
         int perm = getNPKIndex(edgePerms, 12);

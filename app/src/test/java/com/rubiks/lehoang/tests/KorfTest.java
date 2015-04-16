@@ -1,22 +1,12 @@
 package com.rubiks.lehoang.tests;
 
-import android.os.Environment;
-
-import com.rubiks.lehoang.rubikssolver.Cube;
+import com.rubiks.lehoang.rubikssolver.CompactCube;
 import com.rubiks.lehoang.rubikssolver.Korfs.Korfs;
 
 import junit.framework.Assert;
 import junit.framework.TestCase;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
-import org.robolectric.shadows.ShadowEnvironment;
-
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
-import java.io.StringReader;
 
 /**
  * Created by LeHoang on 08/04/2015.
@@ -29,61 +19,47 @@ public class KorfTest extends TestCase {
         Korfs.generateCornerHeuristics2(file);
     }
 
-    public void testKorfsEdgeOnPC() throws Exception{
-        File firstFile = new File(Korfs.FIRST_EDGE_FILE_NAME);
-        File secondFile = new File(Korfs.SECOND_EDGE_FILE_NAME);
-        Korfs.generateEdgeHeuristics(firstFile, secondFile);
+    public void testNibbleSetIndex() {
+
+        Korfs.NibbleArray arr = new Korfs.NibbleArray(100);
+
+        arr.setIndex(40, (byte) 10);
+        Assert.assertEquals(10, arr.getIndex(40));
     }
 
-    public void testLoadCornerOnPC() throws IOException{
-       File file = new File(Korfs.CORNERS_FILE_NAME);
-       Korfs.loadCorners(file);
-
-       Assert.assertEquals(40320, Korfs.cornerMap.size());
+    public void testNibbleSetIndexZero(){
+        Korfs.NibbleArray arr = new Korfs.NibbleArray(500);
+        arr.setIndex(0, 15);
+        Assert.assertEquals(15, arr.getIndex(0));
     }
 
-    public void testLoadFirstEdgesOnPC() throws IOException{
-        File file = new File(Korfs.FIRST_EDGE_FILE_NAME);
-        Korfs.loadFirstEdges(file);
-
-        Assert.assertEquals(665280, Korfs.firstEdgeMap.size());
+    public void testNibbleSetLastIndex(){
+        Korfs.NibbleArray arr = new Korfs.NibbleArray(500);
+        arr.setIndex(499, 15);
+        Assert.assertEquals(15, arr.getIndex(499));
     }
 
-    public void testLoadSecondEdgesOnPC() throws IOException {
-        File file = new File(Korfs.SECOND_EDGE_FILE_NAME);
-        Korfs.loadSecondEdges(file);
-        Assert.assertEquals(665280, Korfs.secondEdgeMap.size());
+    public void testNibbleSetNextToEachOther(){
+        Korfs.NibbleArray arr = new Korfs.NibbleArray(500);
+        arr.setIndex(440,15);
+        arr.setIndex(441,1);
+
+        Assert.assertEquals(15, arr.getIndex(440));
+        Assert.assertEquals(1, arr.getIndex(441));
     }
 
-    public void testKorfSearchOnSolvedCube() throws Exception {
-        System.out.println("Loading...");
-        Korfs.loadHeuristics();
-        System.out.println("Loading done");
+    public void testNibbleOverwriteData(){
+        Korfs.NibbleArray arr = new Korfs.NibbleArray(500);
+        arr.setIndex(440,15);
+        arr.setIndex(441,1);
+        arr.setIndex(440,8);
 
-        String solution = Korfs.searchKorfs(new Cube(new BufferedReader(new StringReader(Cube.SOLVED))), 20);
+        Assert.assertEquals(8, arr.getIndex(440));
+        Assert.assertEquals(1, arr.getIndex(441));
 
-        Assert.assertEquals("", solution);
     }
 
-    public void testKorfSearchOnOneMoveSolution() throws Exception{
-        System.out.println("Loading...");
-        Korfs.loadHeuristics();
-        System.out.println("Loading done");
-
-
-        String cube = "Top\nB B B\nB B B\nB B B\n" +
-                "Bottom\nG G G\nG G G\nG G G\n" +
-                "Front\nY Y Y\nR R R\nR R R\n" +
-                "Right\nO O O\nY Y Y\nY Y Y\n"+
-                "Left\nR R R\nW W W\nW W W\n"+
-                "Back\nW W W\nO O O\nO O O\n";
-
-
-        String solution = Korfs.searchKorfs(new Cube(new BufferedReader(new StringReader(cube))), 20);
-
-        Assert.assertEquals("U'", solution);
-    }
-
+  /*
     public void testKorfSearchThreeMoveSolution() throws Exception{
         System.out.println("Loading...");
         Korfs.loadHeuristics();
@@ -137,6 +113,6 @@ public class KorfTest extends TestCase {
         cube.performSequence("RBLUDR'UL'FDR'");
         String solution = Korfs.searchKorfs(cube, 20);
         Assert.assertEquals("RD'F'LU'RD'U'L'B'R'", solution);
-    }
+    }*/
 
 }
