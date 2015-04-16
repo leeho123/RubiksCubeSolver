@@ -18,13 +18,16 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayDeque;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 
 /**
  * Created by LeHoang on 08/04/2015.
@@ -162,53 +165,39 @@ public class Korfs {
     /**
      * Fixed sized cache
      */
-    static class SeenCache<T>{
-        int size;
-        LinkedHashSet<T> cache = new LinkedHashSet<T>();
+    static class SeenCache{
+        final int size;
+        Set<CompactCube> cache;
 
         public SeenCache(int size){
             this.size = size;
+            cache = Collections.newSetFromMap(new LinkedHashMap<CompactCube, Boolean>() {
+                @Override
+                protected boolean removeEldestEntry(Map.Entry<CompactCube, Boolean> eldest) {
+                    return size() > SeenCache.this.size;
+                }
+            });
         }
 
         /**
-         * Add an object into the cache. If the cache is full, evict the 10% oldest elements.
+         * Add an object into the cache. If the cache is full, evict the oldest element.
          * Reinsertion affects the ordering and will bring the element back to the front
          * @param obj
          */
-        public void add(T obj){
-            if(cache.size() < size) {
-                if (cache.contains(obj)) {
-                    cache.remove(obj);
-                }
-                cache.add(obj);
-            }else{
-                for(T cand: get10PercentOldestElem()) {
-                    cache.remove(cand);
-                }
-                cache.add(obj);
+        public void add(CompactCube obj){
+            if (cache.contains(obj)) {
+                cache.remove(obj);
             }
+            cache.add(obj);
         }
 
-        public T[] get10PercentOldestElem(){
-            int numToGet = cache.size() / 10;
-            T[] result = (T[]) new Object[numToGet];
-            if(!cache.isEmpty()) {
-                Iterator<T> it = cache.iterator();
-                for(int i = 0; i < numToGet; i++){
-                    result[i] = it.next();
-                }
-                return result;
-            }else{
-                return null;
-            }
-        }
 
         /**
          * Look up to see if this object exists. If the object doesnt exist, add it in.
          * @param obj
          * @return
          */
-        public boolean lookupExists(T obj){
+        public boolean lookupExists(CompactCube obj){
             boolean contains = cache.contains(obj);
             add(obj);
             return contains;
@@ -216,7 +205,7 @@ public class Korfs {
     }
 
     private static int search(CompactCube cube, int g, int bound, Deque<String> solution) {
-        SeenCache<CompactCube> cache = new SeenCache<CompactCube>(1000000);
+        SeenCache cache = new SeenCache(1000000);
         int f = g + getH(cube);
 
         if(f > bound){
