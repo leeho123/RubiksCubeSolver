@@ -1,33 +1,26 @@
 package com.rubiks.lehoang.rubikssolver.Korfs;
 
-import com.google.common.cache.LoadingCache;
+import com.carrotsearch.hppc.IntArrayDeque;
+import com.carrotsearch.hppc.IntDeque;
+import com.carrotsearch.hppc.ObjectIntOpenHashMap;
 import com.rubiks.lehoang.rubikssolver.CompactCube;
 import com.rubiks.lehoang.rubikssolver.Util;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayDeque;
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.BitSet;
 import java.util.Deque;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
 import java.util.Queue;
-import java.util.Set;
+import java.util.Random;
 
 /**
  * Created by LeHoang on 08/04/2015.
@@ -125,12 +118,12 @@ public class Korfs {
         System.out.println("Finished loading");
     }
 
-    private Deque<String> solution;
+    private IntDeque solution;
     private CompactCube cube;
     private static final int FOUND = -1;
 
     public Korfs(CompactCube cube){
-        solution = new ArrayDeque<String>();
+        solution = new IntArrayDeque();
         this.cube = cube;
     }
 
@@ -139,10 +132,12 @@ public class Korfs {
         if(CompactCube.isSolved(cube)){
             return "";
         }
+        SeenCache cache = new SeenCache(150000);
 
         int bound = getH(cube);
         while(bound < maxDepth){
-            result = search(cube, 0, bound, solution);
+            result = search(cube, 0, bound, solution, cache);
+            cache.clear();
             if(result == FOUND){
                 return giveSolution(solution);
             }else{
@@ -154,10 +149,10 @@ public class Korfs {
         return null;
     }
 
-    private static String giveSolution(Deque<String> solution){
+    private static String giveSolution(IntDeque solution){
         StringBuilder builder = new StringBuilder();
         while(!solution.isEmpty()){
-            builder.append(solution.removeFirst());
+            builder.append(CompactCube.MoveToString[solution.removeFirst()]);
         }
         return builder.toString();
     }
@@ -165,48 +160,59 @@ public class Korfs {
     /**
      * Fixed sized cache
      */
-    static class SeenCache{
-        final int size;
-        Set<CompactCube> cache;
+    public static class SeenCache{
+        int size;
+        ObjectIntOpenHashMap<CompactCube> cache;
+        ObjectIntOpenHashMap<CompactCube> cache2;
 
         public SeenCache(int size){
             this.size = size;
-            cache = Collections.newSetFromMap(new LinkedHashMap<CompactCube, Boolean>() {
-                @Override
-                protected boolean removeEldestEntry(Map.Entry<CompactCube, Boolean> eldest) {
-                    return size() > SeenCache.this.size;
+            cache = new ObjectIntOpenHashMap<CompactCube>();
+            cache2 = new ObjectIntOpenHashMap<CompactCube>();
+        }
+
+        public void add(CompactCube obj, int val){
+            if(cache.containsKey(obj)){
+                if(cache.get(obj) > val){
+                    cache.put(obj, val);
+                    if(cache.size() >= size/2){
+                        cache2.put(obj,val);
+                    }
                 }
-            });
-        }
-
-        /**
-         * Add an object into the cache. If the cache is full, evict the oldest element.
-         * Reinsertion affects the ordering and will bring the element back to the front
-         * @param obj
-         */
-        public void add(CompactCube obj){
-            if (cache.contains(obj)) {
-                cache.remove(obj);
+            }else{
+                if(cache.size() >= size){
+                    cache.clear();
+                    flip();
+                }
+                cache.put(obj, val);
             }
-            cache.add(obj);
         }
 
+        private void flip(){
+            ObjectIntOpenHashMap<CompactCube> temp = cache;
+            cache = cache2;
+            cache2 = temp;
+        }
 
-        /**
-         * Look up to see if this object exists. If the object doesnt exist, add it in.
-         * @param obj
-         * @return
-         */
-        public boolean lookupExists(CompactCube obj){
-            boolean contains = cache.contains(obj);
-            add(obj);
-            return contains;
+        public void clear(){
+            cache.clear();
+            cache2.clear();
+        }
+
+        public boolean contains(CompactCube obj, int val){
+            return cache.containsKey(obj) && cache.get(obj) < val;
         }
     }
 
-    private static int search(CompactCube cube, int g, int bound, Deque<String> solution) {
-        SeenCache cache = new SeenCache(1000000);
+    private static Random rand = new Random();
+    private static int search(CompactCube cube, int g, int bound, IntDeque solution, SeenCache cache) {
         int f = g + getH(cube);
+
+        boolean isContained = cache.contains(cube, f);
+        cache.add(cube, f);
+        if(isContained){
+            return Integer.MAX_VALUE;
+        }
 
         if(f > bound){
             return f;
@@ -218,20 +224,35 @@ public class Korfs {
 
         int min = Integer.MAX_VALUE;
         int t = 0;
-        for(int move = 0; move < CompactCube.NUMMOVES; move++){
+        BitSet notDone = new BitSet(CompactCube.NUMMOVES);
+        notDone.set(0, CompactCube.NUMMOVES);//Set all bits to 1
+
+        //Rule out stupid moves
+        if(!solution.isEmpty()) {
+            notDone.clear(solution.getLast());
+            notDone.clear(CompactCube.INV_MOVES[solution.getLast()]);
+        }
+
+        for(int move = rand.nextInt(CompactCube.NUMMOVES);
+                    !notDone.isEmpty();
+                        move = rand.nextInt(CompactCube.NUMMOVES)){
+            //If we've already done this move
+            if(!notDone.get(move)){
+                move = notDone.nextSetBit(0);
+            }
+            notDone.clear(move);
 
             cube.move(move);
-            solution.addLast(CompactCube.MoveToString[move]);
+            solution.addLast(move);
 
-            if(!cache.lookupExists(cube)){
-                t = search(cube, g + moveCost[move], bound, solution);
-                if(t == FOUND){
-                    return FOUND;
-                }
-                if(t < min){
-                    min = t;
-                }
+            t = search(cube, g + moveCost[move], bound, solution, cache);
+            if(t == FOUND){
+                return FOUND;
             }
+            if(t < min){
+                min = t;
+            }
+
 
             cube.move(CompactCube.INV_MOVES[move]);
 

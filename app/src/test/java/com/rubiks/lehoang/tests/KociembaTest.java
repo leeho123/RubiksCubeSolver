@@ -1,6 +1,8 @@
 package com.rubiks.lehoang.tests;
 
+import com.rubiks.lehoang.rubikssolver.CompactCube;
 import com.rubiks.lehoang.rubikssolver.Cube;
+import com.rubiks.lehoang.rubikssolver.Korfs.Korfs;
 import com.rubiks.lehoang.rubikssolver.Util;
 
 import junit.framework.Assert;
@@ -113,6 +115,34 @@ public class KociembaTest extends TestCase {
 
     }
 
+    public void testKociembaSearch17MoveSolution(){
+        CompactCube cube = new CompactCube();
+
+        cube.move(CompactCube.R);
+        cube.move(CompactCube.B);
+        cube.move(CompactCube.L);
+        cube.move(CompactCube.U);
+        cube.move(CompactCube.D);
+        cube.move(CompactCube.RPRIME);
+        cube.move(CompactCube.U);
+        cube.move(CompactCube.LPRIME);
+        cube.move(CompactCube.F);
+        cube.move(CompactCube.D);
+        cube.move(CompactCube.RPRIME);
+        cube.move(CompactCube.F);
+        cube.move(CompactCube.UPRIME);
+        cube.move(CompactCube.B2);
+        cube.move(CompactCube.RPRIME);
+        cube.move(CompactCube.F);
+
+        String koc = CompactCube.toKociemba(cube);
+
+        System.out.println("Doing koc");
+        String result = Search.solution(koc, 30, 5, false);
+        result = result.replaceAll("\\s+", "");
+
+        Assert.assertEquals("F'RB2UF'RD'F'LU'RU'D'L'B'R'", result);
+    }
 
 
     public void setupConfig(String myCube, String expectedK){

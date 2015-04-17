@@ -177,4 +177,30 @@ public class KorfTest extends TestCase {
         String solution = korfs.idaStarKorfs(20);
         Assert.assertEquals("B2UF'RD'F'LU'RU'D'L'B'R'", solution);
     }
+
+    public void testKorfSearch17MoveSolution(){
+        CompactCube cube = new CompactCube();
+
+        cube.move(CompactCube.R);
+        cube.move(CompactCube.B);
+        cube.move(CompactCube.L);
+        cube.move(CompactCube.U);
+        cube.move(CompactCube.D);
+        cube.move(CompactCube.RPRIME);
+        cube.move(CompactCube.U);
+        cube.move(CompactCube.LPRIME);
+        cube.move(CompactCube.F);
+        cube.move(CompactCube.D);
+        cube.move(CompactCube.RPRIME);
+        cube.move(CompactCube.F);
+        cube.move(CompactCube.UPRIME);
+        cube.move(CompactCube.B2);
+        cube.move(CompactCube.RPRIME);
+        cube.move(CompactCube.F);
+
+        Korfs korfs = new Korfs(cube);
+
+        String solution = korfs.idaStarKorfs(20);
+        Assert.assertEquals("F'RB2UF'RD'F'LU'RU'D'L'B'R'", solution);
+    }
 }

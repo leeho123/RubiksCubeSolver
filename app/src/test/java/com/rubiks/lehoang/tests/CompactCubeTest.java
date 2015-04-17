@@ -276,7 +276,7 @@ public class CompactCubeTest extends TestCase {
     public void testEncodeEdges(){
         CompactCube cube = new CompactCube();
 
-        int result = cube.encodeEdges();
+        long result = cube.encodeEdges();
 
         assertEquals(0, result);
     }

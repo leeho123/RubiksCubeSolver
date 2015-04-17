@@ -1,5 +1,6 @@
 package com.rubiks.lehoang.rubikssolver;
 
+import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -599,7 +600,7 @@ public class CompactCube {
         return coeff;
     }
 
-    public int encodeEdges(){
+    public long encodeEdges(){
         byte[] edgePerms = new byte[edges.length];
         byte[] edgeOri = new byte[edges.length];
 
@@ -608,8 +609,11 @@ public class CompactCube {
             edgeOri[i] = getEdgeOri(edges[i]);
         }
 
-        int permNum = getFactorialNumber(edgePerms);
-        int oriNum = getBase10FromBaseN(edgeOri, 2);
+        //Get rid of first edge because orientation can be determined by others
+        edgeOri[0] = 0;
+
+        long permNum = getFactorialNumber(edgePerms);
+        long oriNum = getBase10FromBaseN(edgeOri, 2);
 
         //2^12 precomputed for speed
         return oriNum + permNum * 4096;
@@ -657,10 +661,16 @@ public class CompactCube {
     }
 
     @Override
-    public boolean equals(Object b){
-        CompactCube cube = (CompactCube) b;
-        return Arrays.equals(corners, cube.corners) &&
-                 Arrays.equals(edges, cube.edges);
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        CompactCube that = (CompactCube) o;
+
+        if (!Arrays.equals(corners, that.corners)) return false;
+        if (!Arrays.equals(edges, that.edges)) return false;
+
+        return true;
     }
 
     @Override
@@ -668,5 +678,13 @@ public class CompactCube {
         int result = Arrays.hashCode(corners);
         result = 31 * result + Arrays.hashCode(edges);
         return result;
+    }
+
+
+    public BigInteger encodeWholeCube(){
+        BigInteger edgesEncoding = BigInteger.valueOf(encodeEdges());
+        BigInteger cornersEncoding = BigInteger.valueOf(encodeCorners());
+
+        return (edgesEncoding.multiply(BigInteger.valueOf(NO_CORNER_ENCODINGS))).add(cornersEncoding);
     }
 }
