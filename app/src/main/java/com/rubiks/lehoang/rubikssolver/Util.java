@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Color;
 import android.util.Log;
 
+
 import org.kociemba.twophase.Search;
 
 import java.io.BufferedReader;

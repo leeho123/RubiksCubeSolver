@@ -4,68 +4,102 @@ import com.carrotsearch.hppc.IntDeque;
 import com.rubiks.lehoang.rubikssolver.CompactCube;
 import com.rubiks.lehoang.rubikssolver.Korfs.Korfs;
 
+
+import org.kociemba.twophase.Search;
+
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.BitSet;
+import java.util.Random;
 
 /**
  * Created by LeHoang on 08/04/2015.
- * This class is used to train the program to guess a move count to be used for korfs iterative deepening
+ * This class is used to train the program to guess a move count lower and upper bound to be used for korf fringe search
  */
 public class Trainer {
-    public static int FOUND = -1;
-    private IntDeque solution;
-/*
-    private static int search(CompactCube cube, int g, int bound, IntDeque solution, Korfs.SeenCache cache) {
+    enum Face{U1,U2,U3,F1,F2,F3,R1,R2,R3,
+        D1,D2,D3,B1,B2,B3,L1,L2,L3;}
+    public static int[][] validMoves = {{1,2,4,5},
+                                        {0,2,3,5},
+                                        {0,1,3,4},
+                                        {1,2,4,5},
+                                        {0,2,3,5},
+                                        {0,1,3,4}};
+    public static Random rand = new Random();
+    public static int[] generateRandomScramble(int length){
 
-        boolean isContained = cache.contains(cube);
-        cache.add(cube);
-        if(isContained){
-
-            return Integer.MAX_VALUE;
+        int[] moves = new int[length];
+        moves[0] = rand.nextInt(CompactCube.NUMMOVES);
+        for(int i = 1; i < length; i++){
+            moves[i] = (validMoves[moves[i-1]/3][rand.nextInt(4)]*3) + (rand.nextInt(3));
         }
 
-        if(f > bound){
-            return f;
-        }
+        return moves;
+    }
+    public static int[] Load20KnownDepth20(){
+        BufferedReader stream;
 
-        if(CompactCube.isSolved(cube)){
-            return FOUND;
-        }
+        int[] counts = new int[50];
 
-        int min = Integer.MAX_VALUE;
-        int t = 0;
-        BitSet notDone = new BitSet(CompactCube.NUMMOVES);
-        notDone.set(0, CompactCube.NUMMOVES);
-        if(!solution.isEmpty()) {
-            notDone.clear(solution.getLast());
-            notDone.clear(CompactCube.INV_MOVES[solution.getLast()]);
-        }
-        for(int move = rand.nextInt(CompactCube.NUMMOVES);
-            !notDone.isEmpty();
-            move = rand.nextInt(CompactCube.NUMMOVES)){
-            //If we've already done this move
-            if(!notDone.get(move)){
-                move = notDone.nextSetBit(0);
+        try {
+            stream = new BufferedReader(new InputStreamReader(new FileInputStream("htm.txt")));
+            String readLine = stream.readLine();
+            int[] moves;
+            CompactCube cube = new CompactCube();
+            String solution;
+            while(readLine != null){
+                moves = convertFromStringToMoves(readLine);
+
+                //Move the cube
+                for(int move: moves){
+                    cube.move(move);
+                }
+
+                solution = Search.solution(CompactCube.toKociemba(cube), 21, 20, false);
+                System.out.println("Solution was..." + solution);
+                counts[countMoves(solution)]++;
+                cube.reset();
+                readLine = stream.readLine();
             }
-            notDone.clear(move);
-
-            cube.move(move);
-            solution.addLast(move);
-
-            t = search(cube, g + moveCost[move], bound, solution, cache);
-            if(t == FOUND){
-                return FOUND;
-            }
-            if(t < min){
-                min = t;
-            }
-
-
-            cube.move(CompactCube.INV_MOVES[move]);
-
-            //Take off the last thing added
-            solution.removeLast();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        return min;
-    }*/
+        return counts;
+    }
+
+    public static int countMoves(String solution) {
+        char current;
+        int result = 0;
+        for(int i = solution.length()-1; i >=0; i--){
+            current = solution.charAt(i);
+            switch(current){
+                case '2': result++; break;
+                case '\'': continue;
+                case 'U':
+                case 'F':
+                case 'R':
+                case 'D':
+                case 'B':
+                case 'L':
+                    result++; break;
+                default:
+                    continue;
+
+            }
+        }
+        return result;
+    }
+
+    public static int[] convertFromStringToMoves(String moves){
+        int[] result = new int[moves.length()/2];
+        for(int i = 0; i < moves.length(); i+=2){
+            result[i/2] = Face.valueOf(moves.substring(i, i+2)).ordinal();
+        }
+        return result;
+    }
+
+
 
 }

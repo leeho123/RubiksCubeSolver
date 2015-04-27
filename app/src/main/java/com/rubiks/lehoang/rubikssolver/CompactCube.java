@@ -57,20 +57,6 @@ public class CompactCube {
         }
     }
 
-    /**
-     * Trying out a super compact representation of a cube at a bit level to make
-     * use of fast shifting operators
-     */
-    enum Face{
-        U,F,R,D,B,L;
-
-        public static Face getOpposite(Face face){
-           Face[] faces = Face.values();
-           return faces[(face.ordinal() + 3) % 6];
-        }
-    }
-
-
     public static final byte[] SOLVED_CORNERS;
     public static final byte[] SOLVED_EDGES;
     static{
@@ -404,6 +390,11 @@ public class CompactCube {
         corners = Arrays.copyOf(SOLVED_CORNERS, SOLVED_CORNERS.length);
     }
 
+    public void reset(){
+        edges = Arrays.copyOf(SOLVED_EDGES, SOLVED_EDGES.length);
+        corners = Arrays.copyOf(SOLVED_CORNERS, SOLVED_CORNERS.length);
+    }
+
     /**
      * Peform a move 0 - 17. Total of 18 moves U, U2, U',R ,R2, R'....
      * We dont want to call any methods here to improve the speed
@@ -687,4 +678,13 @@ public class CompactCube {
 
         return (edgesEncoding.multiply(BigInteger.valueOf(NO_CORNER_ENCODINGS))).add(cornersEncoding);
     }
+
+    /*
+    /*
+     * Compress the representation for storage to save memory
+     *
+    public byte[] pack(){
+        byte[] compressed = new byte[13];
+        return compressed;
+    }*/
 }

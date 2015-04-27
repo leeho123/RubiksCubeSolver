@@ -2,7 +2,7 @@ package com.rubiks.lehoang.tests;
 
 import com.rubiks.lehoang.rubikssolver.CompactCube;
 import com.rubiks.lehoang.rubikssolver.Cube;
-import com.rubiks.lehoang.rubikssolver.Korfs.Korfs;
+
 import com.rubiks.lehoang.rubikssolver.Util;
 
 import junit.framework.Assert;

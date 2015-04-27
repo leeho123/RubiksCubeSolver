@@ -1,8 +1,10 @@
 package com.rubiks.lehoang.rubikssolver.Korfs;
 
+import com.carrotsearch.hppc.ByteArrayDeque;
+import com.carrotsearch.hppc.ByteDeque;
 import com.carrotsearch.hppc.IntArrayDeque;
 import com.carrotsearch.hppc.IntDeque;
-import com.carrotsearch.hppc.ObjectIntOpenHashMap;
+import com.carrotsearch.hppc.ObjectByteOpenHashMap;
 import com.rubiks.lehoang.rubikssolver.CompactCube;
 import com.rubiks.lehoang.rubikssolver.Util;
 
@@ -21,6 +23,11 @@ import java.util.BitSet;
 import java.util.Deque;
 import java.util.Queue;
 import java.util.Random;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 /**
  * Created by LeHoang on 08/04/2015.
@@ -118,65 +125,177 @@ public class Korfs {
         System.out.println("Finished loading");
     }
 
-    private IntDeque solution;
-    private CompactCube cube;
     private static final int FOUND = -1;
+    private static final int NOT_FOUND = -2;
+    int[] solutionFound = {NOT_FOUND, NOT_FOUND};
 
-    public Korfs(CompactCube cube){
-        solution = new IntArrayDeque();
-        this.cube = cube;
+    public static int MOVE_ON = -3;
+
+    private static String giveSolution(ByteDeque solution){
+        StringBuilder builder = new StringBuilder();
+        while(!solution.isEmpty()){
+            builder.append(CompactCube.MoveToString[solution.removeFirst() & 0xFF]);
+        }
+        return builder.toString();
     }
 
-    public  String idaStarKorfs(int maxDepth){
+    public static String idaStarKorfs(int maxDepth, CompactCube cube){
+        SeenCache cache = new SeenCache(100000);
+        return idaStarKorfsSubTree(maxDepth, cube, 0, CompactCube.NUMMOVES, cache);
+    }
+
+    public static String idaStarKorfsSubTree(int maxDepth, CompactCube cube, int start, int end, SeenCache cache){
+        ByteDeque solution = new ByteArrayDeque();
         int result = 0;
         if(CompactCube.isSolved(cube)){
             return "";
         }
-        SeenCache cache = new SeenCache(150000);
 
         int bound = getH(cube);
         while(bound < maxDepth){
-            result = search(cube, 0, bound, solution, cache);
+            System.out.println("Trying depth:" + bound);
+            result = search(cube, 0, bound, solution, cache, start, end);
             cache.clear();
             if(result == FOUND){
                 return giveSolution(solution);
+            }else if(result == NOT_FOUND){
+                return null;
             }else{
                 bound = result;
-                System.out.println("Trying depth:" + bound);
             }
         }
 
         return null;
     }
 
-    private static String giveSolution(IntDeque solution){
-        StringBuilder builder = new StringBuilder();
-        while(!solution.isEmpty()){
-            builder.append(CompactCube.MoveToString[solution.removeFirst()]);
+
+    public String idaStarMultiKorfs(int maxDepth, CompactCube cube) throws ExecutionException, InterruptedException {
+        ExecutorService threadpool = Executors.newFixedThreadPool(2);
+        try{
+
+            ByteDeque solution1 = new ByteArrayDeque();
+            ByteDeque solution2 = new ByteArrayDeque();
+
+            SeenCache cache = new SeenCache(100000);
+            int bound = getH(cube);
+            SearchSubTreeTask task1;
+            SearchSubTreeTask task2;
+
+
+            Future<Integer> ans1;
+            Future<Integer> ans2;
+
+
+            int result1 = 0;
+            int result2 = 0;
+
+
+            while(bound < maxDepth) {
+                System.out.println("Trying depth:" + bound);
+                cache.clear();
+                task1 = new SearchSubTreeTask(0, maxDepth, new CompactCube(cube), 0, 9, cache, bound, solution1);
+                task2 = new SearchSubTreeTask(1, maxDepth, new CompactCube(cube), 9, 18, cache, bound, solution2);
+                ans1 = threadpool.submit(task1);
+                ans2 = threadpool.submit(task2);
+
+                synchronized (Korfs.this) {
+                    while (true) {
+                        if(solutionFound[0] >= 0 || solutionFound[1] >= 0 ||
+                                (solutionFound [0] == MOVE_ON && solutionFound[1] == MOVE_ON)){
+                            break;
+                        }
+                        wait();
+                    }
+                    if (solutionFound[0] >= 0) {
+                        ans2.cancel(true);
+                        return giveSolution(solution1);
+                    } else if(solutionFound[1] >= 0) {
+                        ans1.cancel(true);
+                        return giveSolution(solution2);
+                    } else {
+                        solutionFound[0] = NOT_FOUND;
+                        solutionFound[1] = NOT_FOUND;
+                    }
+                }
+
+                result1 = ans1.get();
+                result2 = ans2.get();
+
+                if (result1 == FOUND) {
+                    return giveSolution(solution1);
+                }
+                if (result2 == FOUND) {
+                    return giveSolution(solution2);
+                }
+
+                // Past this point no solutions were found for any
+                // Take the next bound
+                bound = result1 < result2 ? result1 : result2;
+            }
+        }finally{
+                threadpool.shutdown();
         }
-        return builder.toString();
+        return null;
     }
 
+    private class SearchSubTreeTask implements Callable<Integer> {
+
+        CompactCube cube;
+        int maxDepth;
+        int start;
+        int end;
+        SeenCache cache;
+        int bound;
+        ByteDeque solution;
+        int taskNo;
+
+        public SearchSubTreeTask(int taskNo,int maxDepth, CompactCube cube, int start,
+                                 int end, SeenCache cache, int bound,ByteDeque solution){
+            this.maxDepth = maxDepth;
+            this.cache = cache;
+            this.start = start;
+            this.end = end;
+            this.cube = cube;
+            this.bound = bound;
+            this.solution = solution;
+            this.taskNo = taskNo;
+        }
+
+        @Override
+        public Integer call() throws Exception {
+
+            int result = search(cube, 0, bound, solution, cache, start,end);
+            synchronized (Korfs.this){
+                if(result == FOUND){
+                    solutionFound[taskNo] = taskNo;
+                }else{
+                    solutionFound[taskNo] = MOVE_ON;
+                }
+                Korfs.this.notifyAll();
+            }
+            return result;
+        }
+    }
     /**
      * Fixed sized cache
      */
     public static class SeenCache{
         int size;
-        ObjectIntOpenHashMap<CompactCube> cache;
-        ObjectIntOpenHashMap<CompactCube> cache2;
+        ObjectByteOpenHashMap<CompactCube> cache;
+        ObjectByteOpenHashMap<CompactCube> cache2;
 
         public SeenCache(int size){
             this.size = size;
-            cache = new ObjectIntOpenHashMap<CompactCube>();
-            cache2 = new ObjectIntOpenHashMap<CompactCube>();
+            cache = new ObjectByteOpenHashMap<CompactCube>();
+            cache2 = new ObjectByteOpenHashMap<CompactCube>();
         }
 
-        public void add(CompactCube obj, int val){
+        public synchronized void add(CompactCube obj, int val){
             if(cache.containsKey(obj)){
                 if(cache.get(obj) > val){
-                    cache.put(obj, val);
+                    cache.put(obj, (byte) val);
                     if(cache.size() >= size/2){
-                        cache2.put(obj,val);
+                        cache2.put(obj, (byte) val);
                     }
                 }
             }else{
@@ -184,12 +303,12 @@ public class Korfs {
                     cache.clear();
                     flip();
                 }
-                cache.put(obj, val);
+                cache.put(obj, (byte) val);
             }
         }
 
         private void flip(){
-            ObjectIntOpenHashMap<CompactCube> temp = cache;
+            ObjectByteOpenHashMap<CompactCube> temp = cache;
             cache = cache2;
             cache2 = temp;
         }
@@ -199,17 +318,138 @@ public class Korfs {
             cache2.clear();
         }
 
-        public boolean contains(CompactCube obj, int val){
-            return cache.containsKey(obj) && cache.get(obj) < val;
+        public synchronized boolean contains(CompactCube obj, int val){
+            return cache.containsKey(obj) && (cache.get(obj)) < val;
         }
     }
 
-    private static Random rand = new Random();
-    private static int search(CompactCube cube, int g, int bound, IntDeque solution, SeenCache cache) {
+    public static String fringeSearchKorfs(int maxDepth, CompactCube cube){
+        ByteDeque solution = new ByteArrayDeque();
+        SeenCache cache = new SeenCache(100000);
+        int result = 0;
+        Deque<CompactCube> nowList = new ArrayDeque<CompactCube>();
+        IntDeque nowGs = new IntArrayDeque();
+        Deque<ByteDeque> nowSolutions = new ArrayDeque<ByteDeque>();
+
+
+        Deque<CompactCube> laterList = new ArrayDeque<CompactCube>();
+        IntDeque laterGs = new IntArrayDeque();
+        Deque<ByteDeque> laterSolutions = new ArrayDeque<ByteDeque>();
+
+        nowList.addFirst(cube);
+        nowGs.addFirst(0);
+        nowSolutions.addFirst(solution);
+
+        int bound = getH(cube);
+
+        Deque<CompactCube> temp;
+        IntDeque tempG;
+        Deque<ByteDeque> tempS;
+
+        int min;
+        while(bound < maxDepth){
+            min = Integer.MAX_VALUE;
+            System.out.println("Trying depth:" + bound);
+            while(!nowList.isEmpty()) {
+                solution = nowSolutions.removeFirst();
+                result = searchFringe(nowList.removeFirst(), nowGs.removeFirst(), laterList, laterGs, laterSolutions, bound, solution , cache, 0, CompactCube.NUMMOVES);
+                if(result == FOUND){
+                    return giveSolution(solution);
+                }
+                if(result < min){
+                    min = result;
+                }
+                //Making it easier for GC to collect
+                solution.clear();
+                solution = null;
+            }
+            System.out.println(laterList.size());
+
+            bound = min;
+
+            temp = nowList;
+            nowList = laterList;
+            laterList = temp;
+
+            tempG = nowGs;
+            nowGs = laterGs;
+            laterGs = tempG;
+
+            tempS = nowSolutions;
+            nowSolutions = laterSolutions;
+            laterSolutions = tempS;
+        }
+        return null;
+    }
+
+    private static int searchFringe(CompactCube cube, int g, Deque<CompactCube> later, IntDeque laterGs, Deque<ByteDeque> laterSolutions, int bound, ByteDeque solution,
+                              SeenCache cache, int start, int end){
         int f = g + getH(cube);
 
         boolean isContained = cache.contains(cube, f);
-        cache.add(cube, f);
+        cache.add(new CompactCube(cube), f);
+        if(isContained){
+            return Integer.MAX_VALUE;
+        }
+
+        if(f > bound && f <= 20){
+            later.addFirst(new CompactCube(cube));
+            laterGs.addFirst(g);
+            laterSolutions.addFirst(new ByteArrayDeque(solution));
+            return f;
+        }else if (f > 20){
+            return Integer.MAX_VALUE;
+        }
+
+        if(CompactCube.isSolved(cube)) {
+            return FOUND;
+        }
+
+
+        int min = Integer.MAX_VALUE;
+        int t = 0;
+
+        BitSet notDone = new BitSet(CompactCube.NUMMOVES);
+        notDone.set(0, CompactCube.NUMMOVES);//Set all bits to 1
+
+        //Rule out stupid moves
+        if(!solution.isEmpty()) {
+            notDone.clear(solution.getLast());
+            notDone.clear(CompactCube.INV_MOVES[solution.getLast()]);
+        }
+
+        for(int move = start; move < end; move++){
+            if(!notDone.get(move)){
+                continue;
+            }
+            notDone.clear(move);
+
+            cube.move(move);
+            solution.addLast((byte) move);
+
+            t = searchFringe(cube, g + moveCost[move], later, laterGs, laterSolutions, bound, solution, cache, 0, CompactCube.NUMMOVES);
+            if(t == FOUND){
+                return FOUND;
+            }
+            if(t < min){
+                min = t;
+            }
+            cube.move(CompactCube.INV_MOVES[move]);
+
+            solution.removeLast();
+        }
+        return min;
+
+    }
+    private static Random rand = new Random();
+    private static int search(CompactCube cube, int g, int bound, ByteDeque solution, SeenCache cache, int start, int end) {
+        if(Thread.currentThread().isInterrupted()){
+            return NOT_FOUND;
+        }
+        int f = g + getH(cube);
+
+        boolean isContained = cache.contains(cube, f);
+        cache.add(new CompactCube(cube), f);
         if(isContained){
             return Integer.MAX_VALUE;
         }
@@ -233,21 +473,27 @@ public class Korfs {
             notDone.clear(CompactCube.INV_MOVES[solution.getLast()]);
         }
 
-        for(int move = rand.nextInt(CompactCube.NUMMOVES);
+        /**for(int move = rand.nextInt(CompactCube.NUMMOVES);
                     !notDone.isEmpty();
                         move = rand.nextInt(CompactCube.NUMMOVES)){
+         **/
+        for(int move = start; move < end; move++){
             //If we've already done this move
             if(!notDone.get(move)){
-                move = notDone.nextSetBit(0);
+                //move = notDone.nextSetBit(0);
+                continue;
             }
             notDone.clear(move);
 
             cube.move(move);
-            solution.addLast(move);
+            solution.addLast((byte) move);
 
-            t = search(cube, g + moveCost[move], bound, solution, cache);
+            t = search(cube, g + moveCost[move], bound, solution, cache, 0, CompactCube.NUMMOVES);
             if(t == FOUND){
                 return FOUND;
+            }
+            if(t == NOT_FOUND){
+                return NOT_FOUND;
             }
             if(t < min){
                 min = t;
