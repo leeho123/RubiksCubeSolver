@@ -34,4 +34,4 @@ LPrime = 'LPrime'
  
 #Other
 quarterTurn = 2.4
-clamp = 1.5
+clamp = 2
