@@ -1,14 +1,14 @@
-#Clamp constants
+#Clamp constant
 LeftClamp = 0
 RightClamp = 1
 FrontClamp = 2
 BackClamp = 3
 
 #Release constants
-LeftRelease = 4
-RightRelease = 5
-FrontRelease = 6
-BackRelease =  7
+LeftRelease = 'releaseL'
+RightRelease = 'releaseR'
+FrontRelease = 'releaseF'
+BackRelease =  'releaseR'
 
 #Turn constants
 U = 8
@@ -18,19 +18,19 @@ D = 11
 B = 12
 L = 13
 
-U2 = 14
-F2 = 15
-R2 = 16
-D2 = 17
-B2 = 18
-L2 = 19
+U2 = 'U2'
+F2 = 'F2'
+R2 = 'R2'
+D2 = 'D2'
+B2 = 'B2'
+L2 = 'L2'
 
-UPrime = 20
-FPrime = 21
-RPrime = 22
-DPrime = 23
-BPrime = 24
-LPrime = 25
+UPrime = 'UPrime'
+FPrime = 'FPrime'
+RPrime = 'RPrime'
+DPrime = 'DPrime'
+BPrime = 'BPrime'
+LPrime = 'LPrime'
  
 #Other
 quarterTurn = 2.4
