@@ -32,4 +32,4 @@ DPrime = 'DPrime'
 BPrime = 'BPrime'
 LPrime = 'LPrime'
  
-
+clampDeg = 1.7
