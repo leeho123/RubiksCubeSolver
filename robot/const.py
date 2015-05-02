@@ -1,5 +1,4 @@
 #Clamp constants
-
 LeftClamp = 0
 RightClamp = 1
 FrontClamp = 2
@@ -11,6 +10,7 @@ RightRelease = 5
 FrontRelease = 6
 BackRelease =  7
 
+#Turn constants
 U = 8
 F = 9
 R = 10
@@ -32,4 +32,6 @@ DPrime = 23
 BPrime = 24
 LPrime = 25
  
-
+#Other
+quarterTurn = 2.4
+clamp = 1.5
