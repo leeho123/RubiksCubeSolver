@@ -33,6 +33,6 @@ BPrime = 'BPrime'
 LPrime = 'LPrime'
  
 #Other
-quarterTurn = 2.4
-clamp = 1.7
+quarterTurn = 2.65
+clamp = 2
 
