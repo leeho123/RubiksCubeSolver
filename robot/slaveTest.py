@@ -51,24 +51,30 @@ interface.setMotorAngleControllerParameters(rightClampMotor, clampMotorParams)
 interface.setMotorAngleControllerParameters(leftClampMotor, clampMotorParams)
 	
 def wait(motors):
+	prev = [tups[0] for tups in interface.getMotorAngles(motors)]
 	while not interface.motorAngleReferencesReached(motors):
 		time.sleep(0.1)
+		angles = [tups[0] for tups in interface.getMotorAngles(motors)]
+		if (angles == prev):
+			break
+		else:
+			prev = angles
 def clampBoth():
-	interface.increaseMotorAngleReferences([rightClampMotor,leftClampMotor], [-1.5,-1.5])	
+	interface.increaseMotorAngleReferences([rightClampMotor,leftClampMotor], [-const.clamp,-const.clamp])	
 	wait([rightClampMotor, leftClampMotor])
 
 def clampRight():
-	interface.increaseMotorAngleReferences([rightClampMotor],[-1.5])	
+	interface.increaseMotorAngleReferences([rightClampMotor],[-const.clamp])	
 	wait([rightClampMotor])
 	
 def clampLeft():
-	interface.increaseMotorAngleReferences([leftClampMotor],[-1.5])	
+	interface.increaseMotorAngleReferences([leftClampMotor],[-const.clamp])	
 	wait([leftClampMotor])
 
 commandMap = {'clampBoth': clampBoth}
 
 def releaseBoth():
-	interface.increaseMotorAngleReferences([rightClampMotor,leftClampMotor],[1.5,1.5])
+	interface.increaseMotorAngleReferences([rightClampMotor,leftClampMotor],[const.clamp,const.clamp])
 	wait([rightClampMotor,leftClampMotor])
 
 def receiveCommand(command):
