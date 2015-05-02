@@ -16,37 +16,43 @@ frontClampMotor = 1
 frontRotMotor = 0
 
 def wait(motors):
+	prev = [tups[0] for tups in interface.getMotorAngles(motors)]
 	while not interface.motorAngleReferencesReached(motors):
 		time.sleep(0.1) 
+		angles = [tups[0] for tups in interface.getMotorAngles(motors)]
+		if(angles == prev):
+			break
+		else:
+			prev = angles		
 def clampFront():
-	interface.increaseMotorAngleReferences([frontClampMotor],[-clamp])
+	interface.increaseMotorAngleReferences([frontClampMotor],[-const.clamp])
 	wait([frontClampMotor])
 
 def clampBack():
-	interface.increaseMotorAngleReferences([backClampMotor],[-clamp])
+	interface.increaseMotorAngleReferences([backClampMotor],[-const.clamp])
 	wait([backClampMotor])
 
 def clampBoth():
-	interface.increaseMotorAngleReferences([backClampMotor, frontClampMotor],[-clamp,-clamp])
+	interface.increaseMotorAngleReferences([backClampMotor, frontClampMotor],[-const.clamp,-const.clamp])
 	wait([backClampMotor,frontClampMotor])
 	 
 def releaseBoth():
-	interface.increaseMotorAngleReferences([backClampMotor,frontClampMotor],[clamp,clamp])
+	interface.increaseMotorAngleReferences([backClampMotor,frontClampMotor],[const.clamp,const.clamp])
 	wait([backClampMotor,frontClampMotor])
 
 def releaseFront():
-	interface.increaseMotorAngleReferences([frontClampMotor],[clamp])
+	interface.increaseMotorAngleReferences([frontClampMotor],[const.clamp])
 	wait([frontClampMotor])
 
 def releaseBack():
-	interface.increaseMotorAngleReferences([backClampMotor],[clamp])
+	interface.increaseMotorAngleReferences([backClampMotor],[const.clamp])
 	wait([backClampMotor])
 
 def turnFrontClockwise():
-	interface.increaseMotorAngleReferences([frontRotMotor],[quarterTurn])
+	interface.increaseMotorAngleReferences([frontRotMotor],[const.quarterTurn])
 	wait([frontRotMotor])
 	releaseFront()	
-	interface.increaseMotorAngleReferences([frontRotMotor],[-quarterTurn])
+	interface.increaseMotorAngleReferences([frontRotMotor],[-const.quarterTurn-0.02])
 	wait([frontRotMotor])
 	clampFront()
 
@@ -100,14 +106,15 @@ s.listen(1)
 
 moveToFunctionDict = {'F':turnFrontClockwise}
 
+
+conn, addr = s.accept()
+print('Connected by', addr)
+clampAll(conn)
+
 while True:
-	conn, addr = s.accept()
-	print('Connected by', addr)
-	clampAll(conn)
+	command = raw_input("Enter move:")
 	
-	command = input("Enter move:")
-	
-	movetoFunctionDict[command]()
+	moveToFunctionDict[command]()
 	
 conn.close()
 
