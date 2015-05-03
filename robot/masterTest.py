@@ -15,7 +15,7 @@ backRotMotor = 2
 frontClampMotor = 1
 frontRotMotor = 0
 
-def wait(motors):
+def waitNonblock(motors):
 	prev = [tups[0] for tups in interface.getMotorAngles(motors)]
 	while not interface.motorAngleReferencesReached(motors):
 		time.sleep(0.1) 
@@ -24,17 +24,20 @@ def wait(motors):
 			break
 		else:
 			prev = angles		
+def wait(motors):
+	while not interface.motorAngleReferencesReached(motors):
+		time.sleep(0.1)
 def clampFront():
 	interface.increaseMotorAngleReferences([frontClampMotor],[-const.clamp])
-	wait([frontClampMotor])
+	waitNonblock([frontClampMotor])
 
 def clampBack():
 	interface.increaseMotorAngleReferences([backClampMotor],[-const.clamp])
-	wait([backClampMotor])
+	waitNonblock([backClampMotor])
 
 def clampBoth():
 	interface.increaseMotorAngleReferences([backClampMotor, frontClampMotor],[-const.clamp,-const.clamp])
-	wait([backClampMotor,frontClampMotor])
+	waitNonblock([backClampMotor,frontClampMotor])
 	 
 def releaseBoth():
 	interface.increaseMotorAngleReferences([backClampMotor,frontClampMotor],[const.clamp,const.clamp])
@@ -48,13 +51,20 @@ def releaseBack():
 	interface.increaseMotorAngleReferences([backClampMotor],[const.clamp])
 	wait([backClampMotor])
 
+def turnClockwise(motor, clamp, release):
+	interface.increaseMotorAngleReferences([motor],[-const.quarterTurn])
+	wait([motor])
+	release()	
+	interface.increaseMotorAngleReferences([motor],[const.quarterTurn+0.01])
+	wait([motor])
+	clamp()
+
 def turnFrontClockwise():
-	interface.increaseMotorAngleReferences([frontRotMotor],[const.quarterTurn])
-	wait([frontRotMotor])
-	releaseFront()	
-	interface.increaseMotorAngleReferences([frontRotMotor],[-const.quarterTurn-0.02])
-	wait([frontRotMotor])
-	clampFront()
+	turnClockwise(frontRotMotor, clampFront, releaseFront)
+
+def turnBackClockwise():
+	turnClockwise(backRotMotor, clampBack, releaseBack)
+
 
 interface.motorEnable(backClampMotor)
 interface.motorEnable(backRotMotor)
@@ -104,7 +114,7 @@ s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.bind((host,port))
 s.listen(1)
 
-moveToFunctionDict = {'F':turnFrontClockwise}
+moveToFunctionDict = {'F':turnFrontClockwise, 'B':turnBackClockwise}
 
 
 conn, addr = s.accept()
