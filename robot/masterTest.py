@@ -15,40 +15,56 @@ backRotMotor = 2
 frontClampMotor = 1
 frontRotMotor = 0
 
-def wait(motors):
+def waitNonblock(motors):
+	prev = [tups[0] for tups in interface.getMotorAngles(motors)]
 	while not interface.motorAngleReferencesReached(motors):
 		time.sleep(0.1) 
+		angles = [tups[0] for tups in interface.getMotorAngles(motors)]
+		if(angles == prev):
+			break
+		else:
+			prev = angles		
+def wait(motors):
+	while not interface.motorAngleReferencesReached(motors):
+		time.sleep(0.1)
 def clampFront():
-	interface.increaseMotorAngleReferences([frontClampMotor],[-clamp])
-	wait([frontClampMotor])
+	interface.increaseMotorAngleReferences([frontClampMotor],[-const.clamp])
+	waitNonblock([frontClampMotor])
 
 def clampBack():
-	interface.increaseMotorAngleReferences([backClampMotor],[-clamp])
-	wait([backClampMotor])
+	interface.increaseMotorAngleReferences([backClampMotor],[-const.clamp])
+	waitNonblock([backClampMotor])
 
 def clampBoth():
-	interface.increaseMotorAngleReferences([backClampMotor, frontClampMotor],[-clamp,-clamp])
-	wait([backClampMotor,frontClampMotor])
+	interface.increaseMotorAngleReferences([backClampMotor, frontClampMotor],[-const.clamp,-const.clamp])
+	waitNonblock([backClampMotor,frontClampMotor])
 	 
 def releaseBoth():
-	interface.increaseMotorAngleReferences([backClampMotor,frontClampMotor],[clamp,clamp])
+	interface.increaseMotorAngleReferences([backClampMotor,frontClampMotor],[const.clamp,const.clamp])
 	wait([backClampMotor,frontClampMotor])
 
 def releaseFront():
-	interface.increaseMotorAngleReferences([frontClampMotor],[clamp])
+	interface.increaseMotorAngleReferences([frontClampMotor],[const.clamp])
 	wait([frontClampMotor])
 
 def releaseBack():
-	interface.increaseMotorAngleReferences([backClampMotor],[clamp])
+	interface.increaseMotorAngleReferences([backClampMotor],[const.clamp])
 	wait([backClampMotor])
 
+def turnClockwise(motor, clamp, release):
+	interface.increaseMotorAngleReferences([motor],[-const.quarterTurn])
+	wait([motor])
+	release()	
+	interface.increaseMotorAngleReferences([motor],[const.quarterTurn+0.01])
+	wait([motor])
+	clamp()
+
 def turnFrontClockwise():
-	interface.increaseMotorAngleReferences([frontRotMotor],[quarterTurn])
-	wait([frontRotMotor])
-	releaseFront()	
-	interface.increaseMotorAngleReferences([frontRotMotor],[-quarterTurn])
-	wait([frontRotMotor])
-	clampFront()
+	turnClockwise(frontRotMotor, clampFront, releaseFront)
+
+def turnBackClockwise():
+	turnClockwise(backRotMotor, clampBack, releaseBack)
+
 
 interface.motorEnable(backClampMotor)
 interface.motorEnable(backRotMotor)
@@ -98,16 +114,17 @@ s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.bind((host,port))
 s.listen(1)
 
-moveToFunctionDict = {'F':turnFrontClockwise}
+moveToFunctionDict = {'F':turnFrontClockwise, 'B':turnBackClockwise}
+
+
+conn, addr = s.accept()
+print('Connected by', addr)
+clampAll(conn)
 
 while True:
-	conn, addr = s.accept()
-	print('Connected by', addr)
-	clampAll(conn)
+	command = raw_input("Enter move:")
 	
-	command = input("Enter move:")
-	
-	movetoFunctionDict[command]()
+	moveToFunctionDict[command]()
 	
 conn.close()
 
