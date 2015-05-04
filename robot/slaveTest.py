@@ -4,7 +4,7 @@ import socket
 import time
 import const
 
-host = '192.168.0.33'
+host = '192.168.0.11'
 port = 12345
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.connect((host,port))	
@@ -50,7 +50,7 @@ clampMotorParams.pidParameters.k_d = 0.0
 interface.setMotorAngleControllerParameters(rightClampMotor, clampMotorParams)
 interface.setMotorAngleControllerParameters(leftClampMotor, clampMotorParams)
 	
-def wait(motors):
+def waitNonblock(motors):
 	prev = [tups[0] for tups in interface.getMotorAngles(motors)]
 	while not interface.motorAngleReferencesReached(motors):
 		time.sleep(0.1)
@@ -59,17 +59,22 @@ def wait(motors):
 			break
 		else:
 			prev = angles
+
+def wait(motors):
+	while not interface.motorAngleReferencesReached(motors):
+		time.sleep(0.1)
+
 def clampBoth():
 	interface.increaseMotorAngleReferences([rightClampMotor,leftClampMotor], [-const.clamp,-const.clamp])	
-	wait([rightClampMotor, leftClampMotor])
+	waitNonblock([rightClampMotor, leftClampMotor])
 
 def clampRight():
 	interface.increaseMotorAngleReferences([rightClampMotor],[-const.clamp])	
-	wait([rightClampMotor])
+	waitNonblock([rightClampMotor])
 	
 def clampLeft():
 	interface.increaseMotorAngleReferences([leftClampMotor],[-const.clamp])	
-	wait([leftClampMotor])
+	waitNonblock([leftClampMotor])
 
 commandMap = {'clampBoth': clampBoth}
 
