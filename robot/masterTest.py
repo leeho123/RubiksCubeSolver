@@ -73,30 +73,34 @@ def clampAll(socket):
 def releaseAll(socket):
 	slaveMotor.releaseBoth(socket, releaseBoth)
 
+
 host = ''
 port = 12345
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.bind((host,port))
 s.listen(1)
-
-def turnRightClockwise():
-        slaveMotor.turnRightClockwise(s)
-
-def turnLeftClockwise():
-        slaveMotor.turnLeftClockwise(s)
-
-
-moveToFunctionDict = {'F':turnFrontClockwise, 'B':turnBackClockwise, 
-			'R':turnRightClockwise, 'L':turnLeftClockwise}
-
 conn, addr = s.accept()
 print('Connected by', addr)
 clampAll(conn)
+
+
+def turnRightClockwise(socket):
+        print "calling turn right"
+        slaveMotor.turnRightClockwise(socket)
+
+def turnLeftClockwise(socket):
+        slaveMotor.turnLeftClockwise(socket)
+
+moveToFunctionDict = {'F':turnFrontClockwise, 'B':turnBackClockwise}
+
+moveToFuncSlaveDict = {'R':turnRightClockwise, 'L':turnLeftClockwise}
 
 while True:
 	command = raw_input("Enter move:")
 	if command in moveToFunctionDict:	
 		moveToFunctionDict[command]()
+	if command in moveToFuncSlaveDict:
+		moveToFuncSlaveDict[command](conn)
 	if command == "quit":
 		releaseAll(conn)
 		conn.sendall(b'quit')

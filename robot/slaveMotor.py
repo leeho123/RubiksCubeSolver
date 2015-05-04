@@ -11,6 +11,7 @@ def releaseBoth(socket, func=None):
         socket.recv(1024)
 
 def turnRightClockwise(socket, func=None):
+	print "Sending socket"
 	socket.sendall(b'turnRightClockwise')
 	if func is not None:
 		func()

@@ -32,7 +32,7 @@ def release(motors, interface):
 	releaseAngle(motors, interface, const.clamp)
 
 def halfClamp(motors, interface):
-	releaseAngle(motors, interface, -const.clamp/2)
+	clampAngle(motors, interface, -const.clamp/2)
 
 def halfRelease(motors, interface):
 	releaseAngle(motors, interface, const.clamp/2)
