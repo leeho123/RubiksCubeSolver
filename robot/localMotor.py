@@ -38,11 +38,19 @@ def halfRelease(motors, interface):
 	releaseAngle(motors, interface, const.clamp/2)
 
 def turnClockwise(motors, clamp, release, interface):
-        interface.increaseMotorAngleReferences(motors,[-const.quarterTurn]*len(motors))
+        turn(motors, clamp, release, -const.quarterTurn, interface)
+
+def turn(motors, clamp, release, amount,interface):
+	interface.increaseMotorAngleReferences(motors,[amount]*len(motors))
         wait(motors, interface)
         release()
-        interface.increaseMotorAngleReferences(motors,[const.quarterTurn]*len(motors))
+        interface.increaseMotorAngleReferences(motors,[-amount]*len(motors))
         wait(motors, interface)
         clamp()
 
+def turnClockwise(motors, clamp, release, interface):
+        turn(motors, clamp, release, -const.quarterTurn, interface)
+
+def turnAnti(motors, clamp, release, interface):
+	turn(motors, clamp, release, const.quarterTurn, interface)
 
