@@ -12,8 +12,8 @@ interface.initialize()
 print("finished init")
 
 #Initialise motors
-backClampMotor = 2
-backRotMotor = 3
+backClampMotor = 3
+backRotMotor = 2
 frontClampMotor = 1
 frontRotMotor = 0
 
