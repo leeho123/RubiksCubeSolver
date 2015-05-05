@@ -1,24 +1,30 @@
-def clampBoth(socket, func=None):
-	socket.sendall(b'clampBoth')
-	if func is not None:
-		func()
-	socket.recv(1024)
 
-def releaseBoth(socket, func=None):
-	socket.sendall(b'releaseBoth')
+def sendCommand(socket, command,func=None):
+        socket.sendall(command)      
         if func is not None:
                 func()
         socket.recv(1024)
 
+def clampBoth(socket, func=None):
+	sendCommand(socket, b'clampBoth', func)
+
+def releaseBoth(socket, func=None):
+	sendCommand(socket, b'releaseBoth', func)
+
 def turnRightClockwise(socket, func=None):
-	print "Sending socket"
-	socket.sendall(b'turnRightClockwise')
-	if func is not None:
-		func()
-	socket.recv(1024)
+	sendCommand(socket, b'turnRightClockwise', func)
 
 def turnLeftClockwise(socket, func=None):
-	socket.sendall(b'turnLeftClockwise')
+	sendCommand(b'turnLeftClockwise', func)
+
+def turnLeftAnti(socket, func=None):
+	sendCommand(socket, b'turnLeftAnti', func)
+
+def turnRightAnti(socket, func=None):
+	sendCommand(socket, b'turnRightAnti', func)
+
+def sendCommand(socket, command,func=None):
+	socket.sendall(command)
 	if func is not None:
 		func()
 	socket.recv(1024)
