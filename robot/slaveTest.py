@@ -3,6 +3,7 @@ import brickpi
 import socket
 import time
 import const
+import localMotor
 
 host = '192.168.0.11'
 port = 12345
@@ -16,78 +17,62 @@ interface.initialize()
 #Initialise motors
 rightClampMotor = 1
 rightRotMotor = 0
-leftClampMotor = 3
-leftRotMotor = 2
+leftClampMotor = 2
+leftRotMotor = 3
 
 interface.motorEnable(rightClampMotor)
 interface.motorEnable(rightRotMotor)
 interface.motorEnable(leftClampMotor)
 interface.motorEnable(leftRotMotor)
 
-rotMotorParams = interface.MotorAngleControllerParameters()
-rotMotorParams.maxRotationAcceleration = 20.0
-rotMotorParams.maxRotationSpeed = 100.0
-rotMotorParams.feedForwardGain = 255/20.0
-rotMotorParams.minPWN = 18.0
-rotMotorParams.pidParameters.minOutput = -255
-rotMotorParams.pidParameters.maxOutput = 255
-rotMotorParams.pidParameters.k_p = 600.0
-rotMotorParams.pidParameters.k_i = 0.0
-rotMotorParams.pidParameters.k_d = 0.0
+rotMotorParams = const.getRotationParams(interface)
 interface.setMotorAngleControllerParameters(rightRotMotor, rotMotorParams)
 interface.setMotorAngleControllerParameters(leftRotMotor, rotMotorParams)
 
-clampMotorParams = interface.MotorAngleControllerParameters()
-clampMotorParams.maxRotationAcceleration = 20.0
-clampMotorParams.maxRotationSpeed = 180.0
-clampMotorParams.feedForwardGain = 255/20.0
-clampMotorParams.minPWM = 20.0
-clampMotorParams.pidParameters.minOutput = -255
-clampMotorParams.pidParameters.maxOutput = 255
-clampMotorParams.pidParameters.k_p = 400.0
-clampMotorParams.pidParameters.k_i = 0.0
-clampMotorParams.pidParameters.k_d = 0.0
+clampMotorParams = const.getClampParams(interface)
 interface.setMotorAngleControllerParameters(rightClampMotor, clampMotorParams)
 interface.setMotorAngleControllerParameters(leftClampMotor, clampMotorParams)
 	
-def waitNonblock(motors):
-	prev = [tups[0] for tups in interface.getMotorAngles(motors)]
-	while not interface.motorAngleReferencesReached(motors):
-		time.sleep(0.1)
-		angles = [tups[0] for tups in interface.getMotorAngles(motors)]
-		if (angles == prev):
-			break
-		else:
-			prev = angles
-
-def wait(motors):
-	while not interface.motorAngleReferencesReached(motors):
-		time.sleep(0.1)
-
 def clampBoth():
-	interface.increaseMotorAngleReferences([rightClampMotor,leftClampMotor], [-const.clamp,-const.clamp])	
-	waitNonblock([rightClampMotor, leftClampMotor])
+	localMotor.clamp([leftClampMotor,rightClampMotor], interface)	
 
 def clampRight():
-	interface.increaseMotorAngleReferences([rightClampMotor],[-const.clamp])	
-	waitNonblock([rightClampMotor])
+	localMotor.clamp([rightClampMotor], interface)
 	
 def clampLeft():
-	interface.increaseMotorAngleReferences([leftClampMotor],[-const.clamp])	
-	waitNonblock([leftClampMotor])
-
-commandMap = {'clampBoth': clampBoth}
+	localMotor.clamp([leftClampMotor], interface)
 
 def releaseBoth():
-	interface.increaseMotorAngleReferences([rightClampMotor,leftClampMotor],[const.clamp,const.clamp])
-	wait([rightClampMotor,leftClampMotor])
+	localMotor.release([leftClampMotor,rightClampMotor], interface)
 
 def receiveCommand(command):
 	command()
-		
+
+def halfClampRight():
+	localMotor.halfClamp([rightClampMotor], interface)
+
+def halfClampLeft():
+	localMotor.halfClamp([leftClampMotor], interface)
+
+def halfReleaseRight():
+	localMotor.halfRelease([rightClampMotor], interface)
+
+def halfReleaseLeft():
+	localMotor.halfRelease([leftClampMotor], interface)
+
+def turnRightClockwise():
+	print "Turning right"
+	localMotor.turnClockwise([rightRotMotor], halfClampRight, halfReleaseRight, interface)
+
+def turnLeftClockwise():
+	print "Turning left"
+	localMotor.turnClockwise([leftRotMotor], halfClampLeft, halfReleaseLeft, interface)	
+	
 while True:
 	data = s.recv(1024)
 	if not data : continue
+	print "Got command"
+	if(data == 'quit'): break
 	receiveCommand(eval(data))
 	s.sendall(b'done')
 s.close
