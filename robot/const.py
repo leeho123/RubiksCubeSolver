@@ -44,7 +44,7 @@ rotKP = 450.0
 
 def getRotationParams(interface):
 	rotMotorParams = interface.MotorAngleControllerParameters()
-	rotMotorParams.maxRotationAcceleration = 60.0
+	rotMotorParams.maxRotationAcceleration = 50.0
 	rotMotorParams.maxRotationSpeed = 220.0
 	rotMotorParams.feedForwardGain = 255/40.0
 	rotMotorParams.minPWN = 40.0
