@@ -18,7 +18,7 @@ def waitNonblock(motors, interface):
 def clampAngle(motors, interface, angle):
 	interface.increaseMotorAngleReferences(motors,[angle]*len(motors))
         waitNonblock(motors, interface)
-        interface.increaseMotorAngleReferences(motors,[0]*len(motors))
+        interface.setMotorAngleReferences(motors,[0]*len(motors))
 
 def clamp(motor, interface):
 	clampAngle(motor, interface, -const.clamp)
