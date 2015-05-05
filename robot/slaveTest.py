@@ -32,8 +32,10 @@ interface.setMotorAngleControllerParameters(leftRotMotor, rotMotorParams)
 clampMotorParams = const.getClampParams(interface)
 interface.setMotorAngleControllerParameters(rightClampMotor, clampMotorParams)
 interface.setMotorAngleControllerParameters(leftClampMotor, clampMotorParams)
+print "Motors Enabled"
 	
 def clampBoth():
+	print "clamping"
 	localMotor.clamp([leftClampMotor,rightClampMotor], interface)	
 
 def clampRight():
@@ -67,7 +69,15 @@ def turnRightClockwise():
 def turnLeftClockwise():
 	print "Turning left"
 	localMotor.turnClockwise([leftRotMotor], halfClampLeft, halfReleaseLeft, interface)	
-	
+
+def turnRightAnti():
+	print "Turning right Anti"
+	localMotor.turnAnti([rightRotMotor], halfClampRight, halfReleaseRight, interface)
+
+def turnLeftAnti():
+	print "Turning left Anti"
+	localMotor.turnAnti([leftRotMotor], halfClampLeft, halfReleaseLeft, interface)	
+
 while True:
 	data = s.recv(1024)
 	if not data : continue

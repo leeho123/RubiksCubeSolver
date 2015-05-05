@@ -97,10 +97,17 @@ def turnRightClockwise(socket):
 def turnLeftClockwise(socket):
         slaveMotor.turnLeftClockwise(socket)
 
+def turnLeftAnti(socket):
+	slaveMotor.turnLeftAnti(socket)
+
+def turnRightAnti(socket):
+	slaveMotor.turnRightAnti(socket)
+
 moveToFunctionDict = {'F':turnFrontClockwise, 'B':turnBackClockwise, 
 			'F\'':turnFrontAnti, 'B\'':turnBackAnti}
 
-moveToFuncSlaveDict = {'R':turnRightClockwise, 'L':turnLeftClockwise}
+moveToFuncSlaveDict = {'R':turnRightClockwise, 'L':turnLeftClockwise, 
+			'R\'':turnRightAnti, 'L\'':turnLeftAnti}
 
 while True:
 	command = raw_input("Enter move:")
