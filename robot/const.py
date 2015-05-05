@@ -63,7 +63,7 @@ def getClampParams(interface):
 	clampMotorParams.maxRotationAcceleration = 20.0
 	clampMotorParams.maxRotationSpeed = 180.0
 	clampMotorParams.feedForwardGain = 255/20.0
-	clampMotorParams.minPWM = 20.0
+	clampMotorParams.minPWM = 25.0
 	clampMotorParams.pidParameters.minOutput = -255
 	clampMotorParams.pidParameters.maxOutput = 255
 	clampMotorParams.pidParameters.k_p = clampKP

@@ -53,6 +53,12 @@ def turnFrontClockwise():
 def turnBackClockwise():
 	localMotor.turnClockwise([backRotMotor], halfClampBack, halfReleaseBack, interface)
 
+def turnFrontAnti():
+	localMotor.turnAnti([frontRotMotor], halfClampFront, halfReleaseFront, interface)
+
+def turnBackAnti():
+	localMotor.turnAnti([backRotMotor], halfClampBack, halfReleaseBack, interface)
+
 interface.motorEnable(backClampMotor)
 interface.motorEnable(backRotMotor)
 interface.motorEnable(frontClampMotor)
@@ -91,7 +97,8 @@ def turnRightClockwise(socket):
 def turnLeftClockwise(socket):
         slaveMotor.turnLeftClockwise(socket)
 
-moveToFunctionDict = {'F':turnFrontClockwise, 'B':turnBackClockwise}
+moveToFunctionDict = {'F':turnFrontClockwise, 'B':turnBackClockwise, 
+			'F\'':turnFrontAnti, 'B\'':turnBackAnti}
 
 moveToFuncSlaveDict = {'R':turnRightClockwise, 'L':turnLeftClockwise}
 
