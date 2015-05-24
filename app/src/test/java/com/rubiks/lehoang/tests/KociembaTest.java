@@ -160,4 +160,14 @@ public class KociembaTest extends TestCase {
 
         Assert.assertEquals(expectedK, actual);
     }
+
+    public void testSingMasterSolved(){
+        String solved = "UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB";
+
+        Assert.assertEquals("UF UR RD RB LU LF DB DL FR UB DF BL UFR RFD RDB RBU LFU LUB DLB LDF",Util.compactToSingmaster(solved));
+    }
+
+    public void testSingMasterComplex(){
+
+    }
 }

@@ -18,6 +18,7 @@ public class CompactCube {
     public static final int secondEdgeSolved = 23442432;
     public static final int firstEdgeSolved = 0;
     public static final int cornersSolved = 0;
+
     /**
      * Number of corner perms and orientations 8 * 3
      * Number of edge  perms and orientations 12 * 2
@@ -300,6 +301,7 @@ public class CompactCube {
      *
      * U1U2U3U4U5U6U7U8U9L1L2L3L4L5L6L7L8L9R1R2R3R4R5R6R7R8R9
      * D1D2D3D4D5D6D7D8D9F1F2F3F4F5F6F7F8F9B1B2B3B4B5B6B7B8B9
+     * UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB
      *
      * @param
      */
@@ -310,12 +312,13 @@ public class CompactCube {
         for(int i = 0; i < edges.length; i++){
             for(int j = 0; j<2;j++) {
 
+
+
                 builder.append(strRep.charAt(convEdgeLookup[i * 2][j]));
 
             }
 
             int val = humanToCompMap.get(builder.toString());
-
 
             //System.out.println("Edge:"+ (val/2) + " is in position " + getEdgeVal(i, (val%2)));
 
@@ -330,6 +333,7 @@ public class CompactCube {
             for(int j = 0; j < 3; j++){
                 builder.append(strRep.charAt(convCornerLookup[i][j]));
             }
+            System.out.println(builder.toString());
 
             int val = humanToCompMap.get(builder.toString());
 
@@ -555,6 +559,8 @@ public class CompactCube {
         return oriNum + permNum * 2187;
     }
 
+
+
     /**
      * npk index for lexicographical ordering
      * @param toEncode
@@ -617,6 +623,7 @@ public class CompactCube {
     public int encodeSecond(){
         return encodeSecond(edges);
     }
+
     public static int encodeFirst(byte[] edges){
         return encode6Of12Edges(edges,0);
     }
@@ -679,12 +686,4 @@ public class CompactCube {
         return (edgesEncoding.multiply(BigInteger.valueOf(NO_CORNER_ENCODINGS))).add(cornersEncoding);
     }
 
-    /*
-    /*
-     * Compress the representation for storage to save memory
-     *
-    public byte[] pack(){
-        byte[] compressed = new byte[13];
-        return compressed;
-    }*/
 }

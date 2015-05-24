@@ -23,6 +23,17 @@ public class CompactCubeTest extends TestCase {
         Assert.assertEquals("UUFUUFUUFRRRRRRRRRFFDFFDFFDDDBDDBDDBLLLLLLLLLUBBUBBUBB", CompactCube.toKociemba(cube));
     }
 
+    public void testComplexCon(){
+        CompactCube cube = new CompactCube("FUFFUDLBUDFUDRDRLLDUFLFBBRBDFULDDFRUDLBLLBDURLFLRBUBBR");
+
+        Assert.assertEquals("FUFFUDLBUDFUDRDRLLDUFLFBBRBDFULDDFRUDLBLLBDURLFLRBUBBR", CompactCube.toKociemba(cube));
+    }
+
+    public void testComplexCon2(){
+        CompactCube cube = new CompactCube("DBFDUBURBRURFRLBBBLUUFFBBDDLFFRDDFBFLBBRLUDDDULBUBFUBR");
+
+    }
+
     public void testDefaultConstructor(){
         CompactCube cube = new CompactCube();
         String kociemba = CompactCube.toKociemba(cube);

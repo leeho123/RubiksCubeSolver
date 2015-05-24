@@ -64,6 +64,7 @@ public class Korfs {
     public static String CORNERS_FILE_NAME= "corners.csv";
     public static String FIRST_EDGE_FILE_NAME = "firstEdge.csv";
     public static String SECOND_EDGE_FILE_NAME = "secondEdge.csv";
+    public static String CORNER_TRANSITION_NAME = "cornerTrans.csv";
 
     public static NibbleArray cornerArr;
     public static NibbleArray firstEdgeArr;
@@ -74,6 +75,7 @@ public class Korfs {
                                     1,2,1,
                                     1,2,1,
                                     1,2,1};
+
     static{
         System.out.println("Loading pattern DBs");
         //Fill in corner array
@@ -516,6 +518,80 @@ public class Korfs {
         return Util.max(values);
     }
 
+    public static void generateCornerMoveTable(File file) throws IOException{
+        System.out.println("Generating corner transition table");
+        Queue<byte[]> workQueue = new ArrayDeque<byte[]>();
+
+        System.out.println("Work queue made");
+
+        int[][] moveTable = new int[CompactCube.NO_CORNER_ENCODINGS][6];
+
+        System.out.println("Set up table");
+
+        int count = 1;
+        int[] notFilled = {0,0,0,0,0,0};
+        byte[] state = {0,1,2,3,4,5,6,7}; //Solved state
+        workQueue.add(state);
+
+        int encoding = 0;
+        int cornerEncoding = 0;
+        long usedMemory = 0;
+
+        System.out.println("Starting work");
+
+        while(!workQueue.isEmpty()){
+            state = workQueue.poll();
+            encoding = CompactCube.encodeCorners(state);
+
+            for(int move = 0; move < CompactCube.NUMMOVES; move = move + 3){
+
+
+                CompactCube.moveCorners(move, state);
+                cornerEncoding = CompactCube.encodeCorners(state);
+
+
+                if( (moveTable[encoding][move/3] == 0 || moveTable[encoding][move/3] == -1) && cornerEncoding != 0){
+
+                    //Array has not yet been filled
+
+                    moveTable[encoding][move/3] = cornerEncoding;
+
+                    if(Arrays.equals(moveTable[cornerEncoding], notFilled)){
+                        count++;
+                        if(count % 1000000 == 0){
+                            System.gc();
+                            try {
+                                Thread.sleep(1000);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                            usedMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+                            System.out.println(count + " of 88179840 "+ "Used mem: "+ usedMemory);
+                        }
+
+                        workQueue.add(Arrays.copyOf(state, state.length));
+                        Arrays.fill(moveTable[cornerEncoding], -1);
+                    }
+                }
+                CompactCube.moveCorners(CompactCube.INV_MOVES[move], state);
+            }
+        }
+
+        StringBuilder  builder = new StringBuilder();
+        System.out.println("Done! Writing to file...");
+        Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file)));
+        for(int i = 0; i < moveTable.length; i++){
+            for(int move = 0; move < moveTable[0].length; move++){
+                builder.append(moveTable[i][move]);
+                builder.append(" ");
+            }
+            builder.append("\n");
+            writer.write(builder.toString());
+            builder.setLength(0);
+        }
+        writer.close();
+
+    }
 
     public static void generateCornerHeuristics2(File file) throws IOException {
         Queue<byte[]> workQueue = new ArrayDeque<byte[]>();
@@ -536,8 +612,6 @@ public class Korfs {
             moveCount = states.getIndex(CompactCube.encodeCorners(state));
 
             for(int move = 0; move < CompactCube.NUMMOVES; move++){
-
-
                 CompactCube.moveCorners(move, state);
 
                 cornerEncoding = CompactCube.encodeCorners(state);
@@ -696,8 +770,13 @@ public class Korfs {
         //File file = new File(Korfs.CORNERS_FILE_NAME);
         //Korfs.generateCornerHeuristics2(file);
 
-        File file1 = new File(Korfs.FIRST_EDGE_FILE_NAME);
-        File file2 = new File(Korfs.SECOND_EDGE_FILE_NAME);
-        Korfs.generateEdgeHeuristics2(file1, file2);
+
+        //File file1 = new File(Korfs.FIRST_EDGE_FILE_NAME);
+        //File file2 = new File(Korfs.SECOND_EDGE_FILE_NAME);
+        //Korfs.generateEdgeHeuristics2(file1, file2);
+
+
+        File transFile = new File(Korfs.CORNER_TRANSITION_NAME);
+        Korfs.generateCornerMoveTable(transFile);
     }
 }
