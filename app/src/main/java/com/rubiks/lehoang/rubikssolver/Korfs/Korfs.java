@@ -444,6 +444,7 @@ public class Korfs {
 
     }
     private static Random rand = new Random();
+
     private static int search(CompactCube cube, int g, int bound, ByteDeque solution, SeenCache cache, int start, int end) {
         if(Thread.currentThread().isInterrupted()){
             return NOT_FOUND;
@@ -452,6 +453,7 @@ public class Korfs {
 
         boolean isContained = cache.contains(cube, f);
         cache.add(new CompactCube(cube), f);
+
         if(isContained){
             return Integer.MAX_VALUE;
         }

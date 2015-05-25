@@ -3,6 +3,7 @@ package com.rubiks.lehoang.tests;
 import com.rubiks.lehoang.rubikssolver.CompactCube;
 import com.rubiks.lehoang.rubikssolver.Cube;
 
+import com.rubiks.lehoang.rubikssolver.JNA.KociembaJNA;
 import com.rubiks.lehoang.rubikssolver.Util;
 
 import junit.framework.Assert;
@@ -144,6 +145,21 @@ public class KociembaTest extends TestCase {
         Assert.assertEquals("F'RB2UF'RD'F'LU'RU'D'L'B'R'", result);
     }
 
+    public void testKociembaSearch(){
+        String state = "UDRFUBULLFLBURDRDDFFDFFLBBFUUDRDRRRLRULRLDDFLUBFLBUBBB";
+
+        CompactCube cube = new CompactCube(state);
+
+        String koc = CompactCube.toKociemba(cube);
+
+        String result = Search.solution(koc, 30, 5, false);
+
+        result = result.replaceAll("\\s+", "");
+
+        Assert.assertEquals("", result);
+
+    }
+
 
     public void setupConfig(String myCube, String expectedK){
         Cube cube = null;
@@ -164,10 +180,19 @@ public class KociembaTest extends TestCase {
     public void testSingMasterSolved(){
         String solved = "UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB";
 
-        Assert.assertEquals("UF UR RD RB LU LF DB DL FR UB DF BL UFR RFD RDB RBU LFU LUB DLB LDF",Util.compactToSingmaster(solved));
+        Assert.assertEquals("UF UR UB UL DF DR DB DL FR FL BR BL UFR URB UBL ULF DRF DFL DLB DBR",Util.compactToSingmaster(solved));
     }
 
-    public void testSingMasterComplex(){
-
+    public void testSingMasterComplex() {
+        String state = "UDRFUBULLFLBURDRDDFFDFFLBBFUUDRDRRRLRULRLDDFLUBFLBUBBB";
+        Assert.assertEquals("LF BL DB FU UB RD RB RF LU FD LD UR LDF RBU UFR ULF DRF UBL RDB LBD", Util.compactToSingmaster(state));
     }
+
+    public void testComplexSolveKocOptimal() throws NoSuchFieldException, IllegalAccessException {
+        String state = "UDRFUBULLFLBURDRDDFFDFFLBBFUUDRDRRRLRULRLDDFLUBFLBUBBB";
+
+        KociembaJNA koc = new KociembaJNA();
+        Assert.assertEquals("UDLBD'B'DF'B'L'FL'U'LDF'R'BUBR'", koc.solveOptimal(Util.compactToSingmaster(state)));
+    }
+
 }

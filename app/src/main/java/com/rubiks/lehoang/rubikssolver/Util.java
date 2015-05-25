@@ -129,14 +129,18 @@ public class Util {
 
         return base10Sequence;
     }
-    private static int[][] convSingMasterEdge = {{7,19}, {5,10}, {16,32}, {14,48},
-            {37,3}, {41,21},{34,52}, {30,43},
-            {23,12},{1,46},{28,25},{50,39}};
 
-    private static int[][] getConvSingMasterCorner = {{8,20,9},{15,26,29},
-            {17,35,51},{11,45,2},
-            {38,18,6},{36,0,47},
-            {33,42,53},{44,27,24}};
+
+    //UF UR UB UL DF DR DB DL FR FL BR BL UFR URB UBL ULF DRF DFL DLB DBR
+
+    private static int[][] convSingMasterEdge = {{7,19}, {5,10}, {1,46}, {3,37},
+            {28,25}, {32,16},{34,52}, {30,43},
+            {23,12},{21,41},{48,14},{50,39}};
+
+    private static int[][] getConvSingMasterCorner = {{8,20,9},{2,11,45},
+            {0,47,36},{6,38,18},
+            {29,15,26},{27,24,44},
+            {33,42,53},{35,51,17}};
 
     public static String compactToSingmaster(String cube){
         StringBuilder builder = new StringBuilder();
