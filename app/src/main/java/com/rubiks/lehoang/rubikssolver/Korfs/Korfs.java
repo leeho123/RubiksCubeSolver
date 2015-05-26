@@ -69,12 +69,13 @@ public class Korfs {
     public static NibbleArray cornerArr;
     public static NibbleArray firstEdgeArr;
     public static NibbleArray secondEdgeArr;
-    public static int[] moveCost = {1,2,1,
-                                    1,2,1,
-                                    1,2,1,
-                                    1,2,1,
-                                    1,2,1,
-                                    1,2,1};
+    public static int[] moveCost = {1,1,1,
+                                    1,1,1,
+                                    1,1,1,
+                                    1,1,1,
+                                    1,1,1,
+                                    1,1,1};
+
 
     static{
         System.out.println("Loading pattern DBs");
@@ -208,6 +209,7 @@ public class Korfs {
                         }
                         wait();
                     }
+                    System.out.println("Terminated");
                     if (solutionFound[0] >= 0) {
                         ans2.cancel(true);
                         return giveSolution(solution1);
@@ -265,12 +267,15 @@ public class Korfs {
 
         @Override
         public Integer call() throws Exception {
-
+            System.out.println("Task started");
             int result = search(cube, 0, bound, solution, cache, start,end);
+            System.out.println("Done");
             synchronized (Korfs.this){
                 if(result == FOUND){
+                    System.out.println("Found " + taskNo);
                     solutionFound[taskNo] = taskNo;
                 }else{
+                    System.out.println("Nothing found");
                     solutionFound[taskNo] = MOVE_ON;
                 }
                 Korfs.this.notifyAll();
@@ -292,7 +297,7 @@ public class Korfs {
             cache2 = new ObjectByteOpenHashMap<CompactCube>();
         }
 
-        public synchronized void add(CompactCube obj, int val){
+        public void add(CompactCube obj, int val){
             if(cache.containsKey(obj)){
                 if(cache.get(obj) > val){
                     cache.put(obj, (byte) val);
@@ -320,7 +325,7 @@ public class Korfs {
             cache2.clear();
         }
 
-        public synchronized boolean contains(CompactCube obj, int val){
+        public boolean contains(CompactCube obj, int val){
             return cache.containsKey(obj) && (cache.get(obj)) < val;
         }
     }
@@ -446,19 +451,22 @@ public class Korfs {
     private static Random rand = new Random();
 
     private static int search(CompactCube cube, int g, int bound, ByteDeque solution, SeenCache cache, int start, int end) {
+        //System.out.println("I'm actually doing something");
         if(Thread.currentThread().isInterrupted()){
+            System.out.println("Task Interrupted");
             return NOT_FOUND;
         }
         int f = g + getH(cube);
 
-        boolean isContained = cache.contains(cube, f);
-        cache.add(new CompactCube(cube), f);
+        //boolean isContained = cache.contains(cube, f);
+        //cache.add(new CompactCube(cube), f);
 
-        if(isContained){
-            return Integer.MAX_VALUE;
-        }
+        //if(isContained){
+          //  return Integer.MAX_VALUE;
+        //}
 
         if(f > bound){
+            //System.out.println("Exceeded bound");
             return f;
         }
 
@@ -502,7 +510,6 @@ public class Korfs {
             if(t < min){
                 min = t;
             }
-
 
             cube.move(CompactCube.INV_MOVES[move]);
 
@@ -741,44 +748,18 @@ public class Korfs {
         writer2.close();
     }
 
-    /**
-     * Class that has 1 bit for each element. 0 if present, 1 if not.
-     */
-    class Bitset{
-        byte[] seen;
-
-
-        public Bitset(int size){
-            seen = new byte[size/8];
-        }
-
-        public void setSeen(int index){
-            byte offset = (byte) (index % 8);
-            byte mask = (byte) (128 >>> offset);
-            seen[index/8] = (byte) (seen[index/8] ^ mask);
-        }
-
-        public boolean isSeen(int index){
-            byte bucket = seen[index/8];
-            byte offset = (byte) (index % 8);
-            byte mask = (byte) (128 >>> offset);
-            byte result = (byte) (seen[index/8] & 0);
-            return result != 0;
-        }
-
-    }
 
     public static void main(String[] args) throws IOException {
         //File file = new File(Korfs.CORNERS_FILE_NAME);
         //Korfs.generateCornerHeuristics2(file);
 
 
-        //File file1 = new File(Korfs.FIRST_EDGE_FILE_NAME);
-        //File file2 = new File(Korfs.SECOND_EDGE_FILE_NAME);
-        //Korfs.generateEdgeHeuristics2(file1, file2);
+        File file1 = new File(Korfs.FIRST_EDGE_FILE_NAME);
+        File file2 = new File(Korfs.SECOND_EDGE_FILE_NAME);
+        Korfs.generateEdgeHeuristics2(file1, file2);
 
 
-        File transFile = new File(Korfs.CORNER_TRANSITION_NAME);
-        Korfs.generateCornerMoveTable(transFile);
+        //File transFile = new File(Korfs.CORNER_TRANSITION_NAME);
+        //Korfs.generateCornerMoveTable(transFile);
     }
 }
