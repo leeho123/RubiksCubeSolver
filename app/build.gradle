@@ -33,9 +33,12 @@ dependencies {
     compile files('libs/twophase.jar')
     //compile files('libs/GUI_example.jar')
     compile files('libs/GUI_example.jar')
+<<<<<<< HEAD
     compile files('libs/guava-18.0.jar')
     compile files('libs/hppc-0.6.1.jar')
     compile files('libs/fastutil-7.0.2.jar')
     compile files('libs/jna-4.1.0.jar')
     compile files('libs/jna-platform-4.1.0.jar')
+=======
+>>>>>>> 93f30716a1296db063f7a1582748fd0fc2ea7952
 }
