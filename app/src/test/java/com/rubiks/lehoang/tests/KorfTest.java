@@ -81,7 +81,7 @@ public class KorfTest extends TestCase {
         cube.move(CompactCube.U);
         cube.move(CompactCube.D);
 
-        String solution = Korfs.idaStarKorfs(10, cube);
+        String solution = Korfs.idaStarKorfs(20, cube);
         Assert.assertEquals("U'D'L'B'R'", solution);
     }
 
@@ -97,7 +97,7 @@ public class KorfTest extends TestCase {
         cube.move(CompactCube.U);
         cube.move(CompactCube.LPRIME);
 
-        String solution = Korfs.idaStarKorfs(10, cube);
+        String solution = Korfs.idaStarKorfs(20, cube);
 
         Assert.assertEquals("LU'RU'D'L'B'R'", solution);
     }
@@ -278,10 +278,10 @@ public class KorfTest extends TestCase {
         cube.move(CompactCube.RPRIME);
         cube.move(CompactCube.F);
         cube.move(CompactCube.UPRIME);
-        cube.move(CompactCube.B);
+        cube.move(CompactCube.B2);
 
         String solution = Korfs.fringeSearchKorfs(20, cube);
-        Assert.assertEquals("B'UF'RD'F'LU'RU'D'L'B'R'", solution);
+        Assert.assertEquals("B2UF'RD'F'LU'RU'D'L'B'R'", solution);
 
     }
 }

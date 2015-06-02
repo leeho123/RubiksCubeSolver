@@ -25,6 +25,8 @@ public class CompactCube {
      */
     private static final int PO = 24;
 
+    //private byte isFlipped = 0;
+
     /**
      * 3 turns for each of the 6 moves
      */
@@ -399,6 +401,15 @@ public class CompactCube {
         corners = Arrays.copyOf(SOLVED_CORNERS, SOLVED_CORNERS.length);
     }
 
+    /*
+    public void setFlipped(boolean flipped){
+        isFlipped = (byte) (flipped? 1 : 0);
+    }
+
+    public boolean isFlipped(){
+        return isFlipped == 1;
+    }
+*/
     /**
      * Peform a move 0 - 17. Total of 18 moves U, U2, U',R ,R2, R'....
      * We dont want to call any methods here to improve the speed
@@ -427,6 +438,7 @@ public class CompactCube {
         edges[9] = edgeTransitions[move][edges[9]];
         edges[10] = edgeTransitions[move][edges[10]];
         edges[11] = edgeTransitions[move][edges[11]];
+
     }
 
     public static void moveEdges(int move, byte[] edges){
@@ -442,6 +454,9 @@ public class CompactCube {
         edges[9] = edgeTransitions[move][edges[9]];
         edges[10] = edgeTransitions[move][edges[10]];
         edges[11] = edgeTransitions[move][edges[11]];
+
+        //if move is b or u then check flipped
+
     }
     public static void moveCorners(int move, byte[] corners){
 
@@ -453,6 +468,9 @@ public class CompactCube {
         corners[5] = cornerTransitions[move][corners[5]];
         corners[6] = cornerTransitions[move][corners[6]];
         corners[7] = cornerTransitions[move][corners[7]];
+
+        //if move is b or u then check flipped
+
     }
 
     /**
@@ -533,14 +551,14 @@ public class CompactCube {
     }
 
     public int encodeCorners(){
-        return encodeCorners(corners);
+        return encodeCorners(corners, 8);
     }
 
-    public static int encodeCorners(byte[] corners){
+    public static int encodeCorners(byte[] corners, int length){
         //Extract permutations
-        byte[] cornerPerms = new byte[corners.length];
-        byte[] cornerOri = new byte[corners.length];
-        for(int i=0; i < corners.length;i++){
+        byte[] cornerPerms = new byte[length];
+        byte[] cornerOri = new byte[length];
+        for(int i=0; i < length;i++){
             cornerPerms[i] = getCornerPerm(corners[i]);
             cornerOri[i] = getCornerOri(corners[i]);
         }

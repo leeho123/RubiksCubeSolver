@@ -1,0 +1,586 @@
+\documentclass[titlepage]{report}[12pt]
+\usepackage[margin=1in]{geometry}
+\usepackage{listings}
+\usepackage{titlesec}
+\usepackage{amsfonts}
+
+
+
+
+\setcounter{secnumdepth}{4}
+
+
+\begin{document}
+\title{Optimally Solving a Rubik's Cube}
+\author{Le Hoang}
+\maketitle
+\begin{abstract}
+Abstract goes here.
+\end{abstract}
+
+\section*{Introduction}
+
+\subsection*{Project explanation}
+\subsection*{Motivation}
+\clearpage
+
+\tableofcontents
+
+
+\chapter{Background}
+
+
+\section{Structure}
+In order to obtain a model we can reason about, we must have a consistent way of referencing distinct sections of the cube. This section details the most common basic notation.REF
+What makes this hard? Compare 2 notation to 1 notation
+
+\subsection{Face Notation}
+Usually one labels the faces of a Rubik's cube using the colour of its faces. E.g, For the official international colour scheme: Red, Blue, Yellow, etc. However, it is more useful to have a notation that is independent of face colour. This is because colour schemes vary from cube to cube. Instead we can label the cube using the direction that the face faces. Assume we have the official Rubik's cube with international colour scheme in a position such that the blue face faces upwards and the white face faces towards ourselves, we can label the faces as follows: F (Front), R (RIght), L (Left), B (Back), U (Up) and D (Down). Figure X below shows this:
+
+
+\subsection{Move Notation}
+Now that we've seen a notation of which we can refer to faces, we can now define a notation that defines moves that we can perform on the cube. We need two pieces of information to define a move: the face and the number of 90 degree turns clockwise.  For example: R1 is a 90 degree clockwise turn of the right face, L2 is a 180 degree turn of the left face and B3 is a 270 degree clockwise turn (or a 90 degree anticlockwise turn) of the back face. The table below shows all moves:
+
+\subsection{Rotation Notation}
+So far, we have only defined which faces we can move. We can also express cube rotations that rotate the whole cube. We can define how to rotate the entire cube by defining the axis of rotations X, Y and Z. If we draw a line through the R face to the L face as per figure X, <show picture of axis through and direction of turn> we define the clockwise rotation X as following the clockwise direction turn of the move R. Similarly, the Y clockwise rotation would follow the clockwise rotation of U <fig X> and Z clockwise rotation would follow the clockwise rotation of F. 
+
+\subsection{Cube Notation}
+Now that we have face notation, we can introduce a notation to represent a cube state. If we imagine flatten out the cube into a net (Figure X). We can label each of the 9 squares on each face as per figure X. Note, to prevent confusion with move notation, we label each square with lower case, Since we only define moves where we move outer faces of the cube, the centres of each face remain fixed in their respective initial positions. This allows us to consistently map colours to faces. For example, if the blue centre piece is on the U face, all blue coloured squares could also be labelled as U. 
+\\
+\indent We can now represent a cube state using a 54 character string. In the following order: 
+\\
+u1u2u3u4u5u6u7u8u9r1r2r3r4r5r6r7r8r9f1f2f3f4f5f6f7f8f9\\d1d2d3d4d5d6d7d8d9l1l2l3l4l5l6l7l8l9b1b2b3b4b5b6b7b8b9
+\\
+For example the net in figure X is: blah blah
+
+\subsection{Piece notation}
+Sometimes it is easier to reason about the cube as being constructed of 3x3x3 smaller cube pieces. Excluding the smaller cube that is directly in the centre, a cube consists of 26 total pieces: 12 \textit{Edge} pieces, 8 \textit{Corner} pieces and 6 \textit{Centre} pieces. An edge piece can be uniquely identified using just the two faces that it touches. Similarly, a corner can be uniquely defined by the three faces it touches. Below shows a diagram where the cube is split into three layers by slicing twice through the XZ plane: bottom, middle and top so that we can label all pieces:
+
+\subsection{Singmaster Notation}
+Another way of representing a cube is to use Singmaster Notation. Singmaster Notation uses the piecewise notation and allows us to represent the cube in a much more compact form. The Singmaster Notation needs to account for two properties of a piece. That is its permutation (position in the cube) and its orientation (which way the piece is facing). Using the piece notation, we can define a cube as follows: UF UR UB UL DF DR DB DL FR FL BR BL UFR URB UBL ULF DRF DFL DLB DBR. That is, we put the actual piece that lies in each position: UF, UR, UB, UL, etc. This determines the permutation. The orientation is determined by the order of how the piece is input. For example, if we defined a cube state as starting with UB FD... this tell us that the piece that was in position UB in the solved state, is now in position UF. Similarly, the piece FD is in position UR. Notice the distinction between FD and DF: FD means that the F colour is facing the U direction and the D colour is facing the R direction. DF would mean a flipped version of this where the D colour is facing the U direction and the F colour is facing the R direction. A full example is the notation for figure X... <Insert notation for diagram>
+
+\clearpage
+\section{The Mathematics}
+
+\subsection{Laws \& Lemmas}
+%http://www.ryanheise.com/cube/cube_laws.html
+There are certain properties a Rubik's cube has which are often overlooked. These properties are crucial to reach the true number of the size of the problem space since it proves that some states are unreachable by using the moves defined in <section>.
+
+\subsubsection{All swaps are even}
+All reachable states are those which can be obtained using only an even number of swaps. A swap is defined as exchanging the position of a piece for another. This means the diagram <diag> shows an impossible state since this only requires a single swap. A simple proof is as follows: Using the legal moves defined in <section> we can see that any move will always perform an even number of piece swaps. This means any combinations of moves will only perform an even number of swaps in total.
+
+\subsubsection{All edge flips are even}
+Similar to <Ref> above, all reachable states are those which can be obtained using only an even number of edge flips. For example, the state below is unreachable since it requires only 1 edge flip. In order to reason about this, we must first define what a `good' edge or a `bad' edge is. A `good' edge is an edge which can be permuted back to its original position and orientation using only moves involving faces U, R, D and L. A `bad' edge would be an edge that cannot satisfy the `good' edge condition. We can see that using only moves U, R, D and L from a solved cube state, all edges must be `good' and can never turn bad. This is because no matter how many moves we make, we can always recover the position and orientation of any edge piece by simply reversing the U, R, D or L moves performed. This means no number of U, R, D or L moves can flip an edge. 
+\\
+\indent With the remaining faces: F and B, any 90 degree move will flip all 4 edges on that face. We prove this by simply performing an F move and then attempting to flip any flipped edges on the F face using only U, R, D or L. We previously proved that U, R, D or L cannot flip edges so it will be impossible to return any edges on the F face to back to their original positions and orientations. Again, since we can only flip 4 edges at a time, the total number of edge flips for any reachable cube state must be even.
+
+\subsubsection{All corner orientation totals are divisible by 3}
+So far, we've only seen laws associated with edges. It is slightly harder to reason about corner orientations since there are 3 possible orientations per corner. Let us label the orientations by labelling the solved state as 0, solved state twisted clockwise as 1 and solved state twisted anti clockwise as 2. The diagram below shows all three corner orientation states and their labels. <insert diag>
+\\
+\indent
+If we sum the labels of all corners of any reachable state of a cube, the total is divisible by 3. The diagram below shows a state that is not reachable since the sum of all the labels is 1.
+\\
+\indent
+Once again, we must define what it means to be a `good' corner or a `bad' corner. Notice that all corners lie on the U face or D face. This means for each corner, there is always a sticker that faces the U or D direction. A `good' corner is defined as a corner where the sticker that faces the U or D face is of either U or D colour. Any other corner orientations are defined as `bad'. 
+\\
+\indent
+Using these definitions, we can see that any moves involving the U or D faces cannot change the orientation of any corners. For example, take solved cube and only perform U or D moves. All corners are `good' in a solved cube state. No number of U or D moves can change these corners from good to bad. For the other R, F, L and B moves, a 90 degree turn will increment the orientation label of 2 corners by 1 and add 2 to the orientation label of another 2 corners (modulo 3). The total change is therefore 1+1+2+2 = 6. Since each R, F, L, B will only add 6 to the total label sum. The total label sum of a solved cube is 0 and any move can the total change is can either be 6 or 0, the corner orientation totals must be divisible by 3.
+
+\subsection{Problem space}
+Now that we have an idea of the structure and laws of the Rubik's cube. We can now begin to reason about the problem space.
+
+\subsubsection{Orientations}
+We define the number orientation as the number of directions a piece can face.
+\\
+\indent
+Any edge piece can only have 2 orientations. This is obvious if we define some edges piece as XY, its other orientation is YX. There are no other possible orientations. Since there are 12 corners, we would think that the total number of edge orientations is \begin{math} 2^{12} \end{math}. However, using lemma <edge flip lemma>, we can reason that half of all edge orientations are unreachable since all odd numbered edge flips cannot be reached. This reduces the number of reachable edge orientations to  \begin{math} 2^{12} / 2 =  2^{11} = 2048\end{math}.
+\\
+\indent
+Similarly, any corner piece can have 3 orientations. Since there are 8 corners, we would think that the total number of corner orientations is \begin{math} 3^{8} \end{math}. However, using lemma <corner lemma>, we can prove that only a third of all corner thats are actually reachable. This reduces the number of corner orientations to  \begin{math} 3^{8} / 3 =  3^{7} = 2187 \end{math}
+
+\subsubsection{Permutations}
+We define the number of permutations as the number of positions a piece can be in. 
+\\
+\indent
+The total number of corner permutations is \begin{math}8! = 40320 \end{math}. To arrive at this number, let us take any corner piece from the 8 corners. For any cube state, this corner piece can be in any 1 of 8 positions. We then choose a second corner piece. Since the first piece has already claimed a position, the second piece can only choose from 1 of 7 positions. This continues until the last piece. This gives us \begin{math} 8*7*6*5*4*3*2*1 \end{math} possible corner permutations.
+\\
+\indent
+A similar argument can be made for \begin{math} 12! = 479,001,600 \end{math} edge permutations. One may then argue that the total number of permutations is \begin{math} 8! * 12! \end{math}. However, only half of these permutations are actually reachable using the legal moves defined in <move section ref>. Using Lemma <even swap lemma>, we can reason that all states that have an odd number of swaps are not reachable which halves the number of permutations to \begin{math} 12! * 8! / 2 \end{math}.
+
+\subsubsection{Total state space}
+Using the values above we can calculate the total size of the state space:
+\\
+\begin{math}Total\_Size = (Edge\_Size*Corner\_Size)/2\end{math}
+\\
+\begin{math}Edge\_Size = Edge\_Orientations * Edge\_Permutations\end{math}
+\\
+\begin{math}Corner\_Size = Corner\_Orientations * Corner\_Permutations\end{math}
+\\
+This gives a total state size of 43,252,003,274,489,856,000.
+ 
+\subsection{Group Theory}
+\subsubsection{What are groups?}
+A group is a structure which consists of a set and an operation that can combine any two elements. There are four conditions called `group axioms' that the set and operation combination must satisfy. Let \begin{math} G \end{math} be our set and \begin{math}\overline{\rm OP} \end{math} be our operator:
+\begin{enumerate}
+\item \textbf{Closure} - Any two elements combined using the operator must given another element that is in the set. That is:
+\\
+\begin{math} \forall a,b \in G, \exists c \in G: a\ \overline{\rm OP} \ b = c\end{math}
+
+\item \textbf{Associativity} - Order of evaluation does not matter. That is: 
+\\
+\begin{math} \forall a,b,c \in G: a\ \overline{\rm OP} (\ b \overline{\rm OP} \ c) = (a\ \overline{\rm OP} \ b) \overline{\rm OP} \ c \end{math}
+
+\item \textbf{Identity} - The set must contain the identity element under the operation. That is: 
+\\
+\begin{math} \exists a \in G, \forall b \in G: a\ \overline{\rm OP} \ b = b \end{math}
+
+\item \textbf{Invertibility} There is an inverse element for every element in the set. That is:
+\\
+\begin{math} \forall a \in G, \exists b \in G: a\ \overline{\rm OP} \ b = i \end{math} 
+\\ Where \begin{math} i \end{math} is the identity element defined previously.
+\end{enumerate}
+
+An example of a group is the set of integers \begin{math}\mathbb{Z}\end{math} and the operation \begin{math} + \end{math}. It is easy to see how Associativity is satisfied. Closure is satisfied since the addition of any two integers will give another integer in \begin{math}\mathbb{Z}\end{math}. The identity element is 0 since 0 added to anything will just give itself. Invertibility is satisfied because the inverse element of any integer I is -I.
+
+\subsubsection{How is this relevant to Rubik's Cubes?}
+As it turns out, the set of all reachable Rubik's Cube states with an operator that applies moves (let's call this operator: \begin{math} * \end{math}) forms a group.
+Any cube state can be expressed as a combination of move applications from the solved state. For example, let the solved state be C. We can say something like this: \begin{math} C*R*R = C*R2=C*L*L3*R*R \end{math}. That is, applying two R moves gives the same state as applying R2 which also gives the same state as applying L , L3, R, R. You may notice that applying moves to a cube state should be an illegal operator since our operator should be combining cube states and not states and moves. But. infact, we are combining 2 cube states. R is shorthand for \begin{math} C * R \end{math}. So \begin{math}C * (C * R) * (C * R) = (C* R * R)\end{math}.
+
+Let us call the group that contains all reachable states and the move application operator: G0.
+
+Let us prove G0 is infact a group, by stepping through all the axioms:
+\begin{enumerate}
+\item \textbf{Closure} - Since the group contains all the states reachable using legal moves and we can only apply legal moves using *, it is impossible to generate unreachable states and we therefore have closure.
+\item \textbf{Associativity} - Let us take any cube states S1, S2 and S3: \begin{math}(S1 * S2) * S3 = S1 * (S2 * S3)\end{math}. We can see that this is the case since taking X and applying the sequence of moves that took C to Y and then applying the sequence of moves that took C to Z is exactly the same regardless of the evaluation order. For example, let's use \begin{math}(C * R) * U = C * (R * U) \end{math}. We can see that if we take a solved cube and apply the move R and then U is the same as taking a solved cube and then applying the cube state \begin{math}(R * U)\end{math} which is just R followed by U.
+\item \textbf{Identity} - The identity is our solved state, C. Since C is the same as applying no moves.
+\item \textbf{Invertibility} - All reachable cube states must have an inverse. Let us take a cube state \begin{math}C * S\end{math} where S is a sequence of moves. We can reverse any sequence by simply `undoing' all the moves. For example, the cube state \begin{math} C * R3 * U * B \end{math} has an inverse 
+\begin{math}C * B3 * U3 * R \end{math}.
+\\
+\textbf{Proof:}
+\begin{math}
+ (C*R3 *U *B) * (C*B3*U3*R) 
+ \\= (C*R3*U*B*B3*U3*R) (by \ def \ of \ identity \ C \ and \ associativity)
+ \\=(C*R3*U*C*U3*R) (by \ def \ of \ B \ inverse)
+ \\=(C*R3*U*U3*R) (by \ def \ of \ identity and associativity)
+ \\=(C*R3*C*R) (by \ def \ of \ U \ inverse)
+ \\=(C*R3*R) (by \ def \ of \ identity and associativity)
+ \\=(C*C) (by \ def \ of \ R \ inverse)
+ \\= C
+\end{math}
+
+\end{enumerate}
+
+\subsubsection{Parity} 
+%http://www.ryanheise.com/cube/parity.html
+We can define the parity of a permutation as whether the number of swaps required to obtain that permutation is even or odd. An even permutation is a permutation that requires an even number of swaps. An odd permutation is one that requires an odd number of swap. Notice how this relates to <lemme even swap>. Another way of expressing this lemme would be that the parity of all edge and corner permutations must be even.
+
+\clearpage
+\section{Existing Optimal Algorithms}
+This section aims to detail the existing algorithms for finding optimal solutions.  
+
+\subsection{The Obvious Algorithm: Brute Force}
+The most obvious way to find a solution to a Rubik's cube is to just brute force search. That is, we can systematically explore all potential solutions until we find one. We can imagine our search space as a tree. Using the diagram below:
+
+\subsubsection{Breadth First Search}
+A breadth first search of a search tree aims to search each child of a node first before furthering the search to all grandchildren and great grand children...and so on.
+In the case of a Rubik's cube, we would try all 1 move solutions. Then all 2 move solutions and then 3...etc.
+If we perform a breadth first search, of this tree then we will eventually find an optimal solution. However, there are many problems with this approach:
+\begin{itemize}
+\item \textbf{Exponentially increasing size} - With each increasing depth level of our search tree, the branching factor of 18 means that the number of solutions we are required to look at increase by 18x. This will explode very quickly and become infeasible to search within a reasonable time.
+
+ \item \textbf{Exponential increase in memory consumption} - A non-recursive implementations of a breadth first search require a queue to maintain the child nodes be explored. In the worst case, a 20 move solution would require searching \begin{math}18^20\end{math} nodes. It is clearly not feasible to maintain a queue of this size.
+\end{itemize}
+
+To show the extent of how the number of nodes increase with depth:
+<figure korfs paper table> % https://www.cs.princeton.edu/courses/archive/fall06/cos402/papers/korfrubik.pdf
+\subsection{The First Real Attempt: Thistlethwaite's Algorithm}
+%http://www.jaapsch.net/puzzles/thistle.htm
+The first attempt at creating an optimal solution finder used group theory. Thistlethwaite's algorithm aims to break down the Rubik's cube into smaller sub-problems that can be calculated within reasonable time. The algorithm works by splitting the solve into 4 phases where we increasingly restrict certain moves, this will reduce the number of reachable states gradually until there is only one state left: The solved state. 
+
+Let us define the following groups:
+\\
+\indent \indent
+\begin{math}
+G0 = \langle L,R,F,B,U,D \rangle
+\\ \indent \indent
+G1 =  \langle L,R,F,B,U2,D2 \rangle
+\\ \indent \indent
+G2 = \langle L,R,F2,B2,U2,D2 \rangle
+\\ \indent \indent
+G3 = \langle L2,R2,F2,B2,U2,D2 \rangle
+\\ \indent \indent
+G4 = \{C\}
+\end{math}
+
+\subsubsection{Group G0} G0 is the group of all states reachable using moves L,R,F, B,U,D. Notice how this is just all reachable states using any of the legal moves defined in <ref moves section> since we can perform any L2,R2,F2, etc moves by simply performing L * L , R * R, F * F, etc. Similarly we can perform any L3, R3, F3, etc by performing moves L * L * L, R * R * R, F * F * F, etc. Our aim is to move from G0 -> G1 -> G2 -> G3 -> G4. Where G4 contains only the solved cube state.
+
+\subsubsection{Group G1} G1 is the group of all states reachable using moves L,R,F,B,U2,D2. In contrast to group G0, the reachable states are smaller. G1 contains only good edges. To see why this is so, let us look back to <ref lemma edge flips even>. To explain why there are always an even number of flips, we proved that using only moves U, R, D and L, it is not possible to flip any edges. Instead of moves U, R, D and L, let us prove the same result is possible using moves L, R, F, B, U2 and D2.
+\\
+\indent
+Let us perform a rotation <ref rot> X. Notice that if we rotate the cube, in order to rotate the same faces, our previous U moves would now be B moves, D moves would now be F moves and R and L moves would remain the same. This means that moves L, R, F and B also have the same property in that they cannot flip any edges. Now let's look at moves U2 and D2. Since we've performed an X rotation, previous F moves are now U moves and previous B moves are now D moves. Remember in <ref edge flip lemma> we said that quarter turns of these faces would flip 4 edges. However, we don't have quarter turns. Instead, in G1, we only have U2 and D2 (180 degree turns). If we imagine these as 2 quarter turns, the first quarter turn would flip the 4 edges of that face. However, the next quarter turn would flip the same 4 edges back to their original orientations. This mean that if we start from the solved state where all edges are `good', all edges will remain good assuming we only use moves L,R,F,B,U2,D2.
+
+\subsubsection{Group G2} 
+G2 is the group where we further restrict the reachable states to those reachable using moves L,R,F2,B2,U2,D2. G2 contains only `good' corners where `good' corners are now defined as those corners which have an R or L sticker facing the R or L direction. To see why this is so, let us take moves L and R. None of these moves can change the orientation of the corners. Now let's look at F2, B2, U2 and D2, none of these moves can change the `goodness' of a corner since they make any stickers facing left face right and any stickers facing right face left. 
+\\
+\indent As well as only containing `good' corners, we also fix edges in the centre layer in between the R and L faces. This means all edges that belong on the centre layer are on the centre layer but not necessarily permuted correctly. To see why this is so consider moves R and L. These cannot affect any edges in this middle layer. The remaining F2, B2, U2 and D2 moves can only change the permutation on the edges on the middle layer, it can never take them out.
+
+\subsubsection{Group G3} 
+G3 is the group where we restrict all quarter turn moves. G3 contains the states where the edges in the L and R faces are in their correct slices. Where slices are defined as the middle layer between any two opposite faces, the UD slice is the middle layer between U and D, the FB slice is the middle layer between F and B and the RL slice is the middle layer between faces R and L. G3 only contains edges in their correct slice because all 180 degree turns can only permute edges within their respective slices. As well as this, the parity of the edge permutations is made even. Using <lemma even perm>, we can also say that the permutation of the corners is also even.
+
+\subsubsection{Pattern Databases}
+Most implementations of Thistlethwaites algorithm use large pattern databases in order to quickly search for what moves are required for each transitionining phase. These pattern databases map substates of the cube to a sequence of moves that would take that state to the next phase.
+
+\subsubsection {What makes Thistlethwaites algorithm so good?} 
+This algorithm is effective because we reduce our search space to just searching for moves to transition between each group in a database. The size of each sub problem space is much smaller.
+\\Below shows a table of the search space for each group transition:
+%Group	# positions  	Factor
+%G0=<L, R, F, B, U, D>	4.33·1019		
+%2,048	(211)
+%G1=<L, R, F, B, U2,D2>	2.11·1016		
+%1,082,565	(12C4 ·37)
+%G2=<L, R, F2,B2,U2,D2>	1.95·1010		
+%29,400	( 8C42 ·2·3)
+%G3=<L2,R2,F2,B2,U2,D2>	6.63·105		
+%663,552	(4!5/12)
+\subsubsection{What's so bad?}
+Although fast, this algorithm is not guaranteed to give an optimal solution. Below shows the worst case scenario in terms of number of moves to transition from one stage to another.
+%format this
+G0 -> G1:7 G1->G2:13 G2->G3:15 G3->G4:17
+This gives a worst case scenario of 52 moves to solve a cube which is far from optimal.
+
+\subsection{A Different Approach: Korf's Algorithm}
+%https://www.cs.princeton.edu/courses/archive/fall06/cos402/papers/korfrubik.pdf
+Korf's algorithm takes a different approach to Thistlethwaites algorithm. With Korf's algorithm, we move back to using a brute force approach but we use heuristics to  be able to prune branches from our search tree. 
+
+\subsubsection{Depth First Search}
+In contrast to Breadth First Search <Ref section BFS>, depth first search aims to systematically search the tree depth wise. That is, we will explore the left-most child and then the left-most grandchild and then great grandchild...and so on until we hit a leaf node. In this case, since we know the maximum solution length is 20, we can stop our search after a solution of 20 is tried. The problem with depth first search is that it will not be guaranteed to find an optimal solution. This is because since we are sweeping the tree from left to right, we may well find longer length solutions first and terminate early when there may be a shorter solution later.
+
+\subsubsection{IDA* (Iterative deepening A*)}
+The basis of Korf's Algorithm is the IDA* search algorithm. The IDA* algorithm aims to reduce the search space by intelligently pruning branches that we know could never lead to a valid solution. We start by searching for 1 move solutions using depth first search. If we find nothing then we start our search from the root again and try 2 move solutions, then 3...and so on until we eventually find a solution. This is the iterative deepening aspect of the algorithm. 
+\\
+\indent The A* part of the algorithm comes from the fact that we use heuristics to estimate our `distance' to the goal. In this case our goal is the solved state and the `distance' is the number of moves required to solve a given state.
+
+\paragraph{Heuristics}
+The heuristic used must be admissible i.e it never overestimates the distance to the goal. Since there is currently no way to estimate the solution length for any arbitrary cube state, Korf's algorithm breaks down the heuristic into three smaller and easier to measure sub states:
+\begin{enumerate}
+\item \textbf{Corners} - Number of moves to solve corners only
+\item \textbf{6 of 12 Edges} - Number of moves to solve any 6 of the 12 edges only
+\item \textbf{Remaining 6 of 12 Edges} - Number of moves to solve the remaining 6 of 12 edges only
+\end{enumerate}
+The heuristic then combines all 3 estimates to form the heuristic \texttt{h}:
+%\begin{Math}  max formula here\end{Math}
+Since the maximum number of moves to solve any of these sub states would be the moves required to solve the whole cube, the heuristic is admissible.
+
+\paragraph{Using the heuristic}
+We first set up our search tree with the scrambled cube as the root node. We start searching the tree and fixing the bound to 1. That is, we try all 1 move solutions using a depth first search. We then try all 2 move solutions in a depth first fashion. At the same time as trying a node, we use the heuristic measure to estimate the number of moves required to solve the cube from the given scrambled state. 
+\\
+\indent
+Let the initial scrambled state be called \texttt{m}. Also, let the node we are exploring be called \texttt{n}, we need two things to estimate the number of moves required to solve the scrambled cube. The first is the number of moves we have already executed to get from \texttt{m} to \texttt{n}, let's call this \texttt{g(m,n)}. The second is the estimate of the number of moves required to solve the cube from state n, \texttt{h(n)}. We can now estimate the length of solution by going through node \texttt{n}, \texttt{f(m,n) = g(m,n) + h(n)}. If the current bound of our search is b, we know that if f(m,n) > b, that there is no point in exploring any paths involving \texttt{n} since we are looking for a b move solution and so we can prune this branch.
+\\
+\indent
+As an example, let's assume we are currently searching for a 10 move solution. i.e. we've tried all 9,8,7,etc solutions and have found nothing. Let's now assume that we encounter a node \texttt{n} that we got to via 5 moves from a scrambled state \texttt{m}. i.e. \texttt{g(m,n) = 5}. Additionally, let's estimates that from this point, we require 7 moves to solve. i.e. \texttt{h(n) = 7}. In this case, since we have a bound of 10, we can ignore this node and all children of this node since \begin{math} 12 > 10 \end{math}. We can prune this branch which significantly reduces the number of nodes we need to search. The diagram below shows this: <insert tree image with pruned branch>
+
+\subsubsection{What makes Korf's algorithm so good?}
+Although a standrad depth first search is not guaranteed to kind an optimal solution, Korf's algorithm is guaranteed to find an optimal solution. This is because of the iterative deepening aspect of the algorithm. We first  successively explore solutions of greater length until we find the first and shortest solution. E.g it is impossible to find a 10 move solution if the optimal solution is only 9 moves. This is because if we find a 10 move solution, that would have meant we explored all viable 9 move solutions first and found nothing which contradicts the fact that there is an optimal solution of length 9.
+\\
+\indent Another advantage is that the IDA* algorithm is very memory efficient. Since the maximum number of moves required for any solution is 20, the maximum stack size will also only be 20.
+
+\subsubsection{What's so bad?}
+Although Korf's reduces the search space, the average branching factor is still around 13 <Ref paper>. This is still an exponential number of nodes to search with a worse case of around \begin{math} 13^20 \end{math}. Korf's experimental results show that at a solution of depth 17 took around 2 days to finish and estimated that a depth of 18 would take around 18 weeks.< ref paper>
+
+\subsection{Improving Thistlethwaite's Algorithm: Kociemba's Algorithm}
+%http://kociemba.org/cube.htm
+Kociemba's Algorithm attempts to improve on Thistlethwaite's by reducing the number of phases to just 2 instead of 4. This means we only need to transition between 2 groups:
+\begin{math}
+\\
+\indent
+G0 = \langle U,D,R,L,F,B \rangle
+\\
+\indent
+G1 = \langle U,D,R2,L2,F2,B2 \rangle
+\\
+\indent
+G2 = \{C\} 
+\end{math}
+
+\subsubsection{Group G0} The group G0 is the same as Thistlethwaite's algorithm. (All reachable states).
+
+\subsubsection{Group G1} The group G1 is equivalent to Thistlethwaite's algorithm's group G2 \begin{math} \langle L, R, F2,B2,U2,D2 \rangle \end{math} but we've rotated the  cube using a Z rotation.Which would make all previous L , R, F2, B2, U2, D2 moves into U, D, F2, B2, R2, L2 moves respectively. Therefore the same properties hold: Good Edges are always preserved, edges that belong on the UD-slice (layer between U and D faces) are now fixed but not necessarily permutated in their correct positions.
+
+\subsubsection{Group G2} The group G2 is just the solved state. To transition directly from G1 -> G2 using only moves in G1 we must restore the permutations of all 8 corners. The 8 edges that lie on the U and D faces and the permutation of the 4 edges on the UD slice.
+
+\subsubsection{The big difference}
+The major difference between Kociemba's and Thistlethwaites stems from the consequence of merging together 4 phases into 2. Although previously in Thistlethwaite's algorithm, we could generate pattern databases for moves to transition between each group, the transitions between each group is far too large. Instead, we have to perform smaller tree searches within each group in order to search for a solution that will transition us from one group to another. The good news is that the maximum depths of this search trees are smaller. The maximum number of moves to transition between G0 and G1 is 12 and the number of moves to trainsition between G1 and G2 is 18. Most implementations of Kociemba's algorithm use IDA* at this point.
+
+\subsubsection{What's makes Kociemba's Algorithm so good?}
+Kociemba's algorithm is a good compromise between speed and length of solution. As mentioned in section <Ref the big difference>, the maximum number of moves to transition between G0 and G1 is 12 and the maximum number of moves to transition between G1 and G2 is 18. This gives a maximum solution length of 30 which is not far from 20. 
+
+\subsubsection{What's so bad?}
+Although Kociemba's algorithm gives a close to optimal solution. We cannot guarantee that the solution is optimal. This is because when we search for solutions to transition from G0 to G1, we search for the shortest number of moves. Once we reach some state in G1, we look for the shortest number of moves from G1 to G2. Let us take an example where it takes us 11 moves to get from G0 to G1 and then 12 moves from G1 to G2. There may be a solution that costs 12 moves to get from G1 to G2 and then only 10 moves to get from G1 to G2 which gives an overall shorter number of moves. There are implementations of Kociemba's algorithm which continue to search for solutions so that we search the whole tree until we can prove that the solution we've found is actually optimal. However, these are exponentially slower and on par with Korf's algorithm speed.
+
+\subsection{Why Not Human Algorthms?}
+So far, we've only looked at existing computing algorithms for find optimal solutions. Most speedsolvers will not prioritise move count but instead turn speed. For a speedsolver, R and U moves are much easier to perform than other moves. Therefore, they tend to favour solutions that contain a lot of R and U moves. For a robot, this should only matter if the robot is restricted to perform R and U moves faster. Most human speedsolvers average around 50 - 60 moves which is far from optimal.
+
+
+%HERE
+\section{Existing Visioning Systems}
+This section details the vision part of the project. The aim is to somehow feed in data about the cube state so that we can begin to find a solution. There are some requirements we are looking to satisfy:
+\begin{itemize}
+\item \textbf{Fast} Must be able to quickly read the cube state colours
+\item \textbf{Reliable} Must be able to reliably read the colours of the cubes under certain lightning conditions 
+\item \textbf{Robust} Must be able to read colours of the cubes under variable lighting conditions
+\end{itemize}
+
+\subsection{Colour Schemes}
+In order to be able to read the colours of the cube state, we need to understand how colour can be represented.
+\paragraph{RGB Colour Scheme}
+All light is made from 3 component colours: Red, Green and Blue. We can create any colour using these 3 component colours by varying the intensities on each component. We can create white by having maximum intensity for all components, on the other hand, black can be made by having 0 intensity for all components.
+Below shows a few examples of colours made using the RGB colour scheme. <Insert image of colour wheel>
+
+\subsubsection{HSV Colour Scheme}
+HSV takes a different approach to representing colour. HSV uses three components: Hue, Saturation and Value. The hue determines the `wavelength' of the colour within the visible light spectrum. In order words, it determines the `colour' of the colour. Usually Hue is represented as a colour wheel ranging from 0 to 360 degrees as show in <ref fig colour wheel H>
+
+Saturation determines the perceived intensity of the colour. It determines how `colourful' the colour is. The closer the saturation is to 0, the more `dull' it will look. A saturation of 0 will just give a gray image. Below shows an image of varying saturation for red. %http://en.wikipedia.org/wiki/Colorfulness#/media/File:Saturationdemo.png
+	
+Value determines the brightness of the colour. The higher the value, the closer the colour will appear to white. The lower it is, the closer it will be to black.
+\subsection{Hardware}
+\subsubsection{RGB sensors}
+The most primitive implementations of Rubik's Cube state readers that use RGB sensors. The sensor will hover over each sticker of the cube in a pre-determined order to read the colour. As suggested by the name, the sensor reads the RGB values of the sticker, we can then manipulate this input to try to identify the colour.
+%http://cache.lego.com/e/dynamic/is/image/LEGO/9694?$main$
+Although simple, the major drawback with this approach is that it is difficult to distinguish between colours in varying lighting situations. E.g. if a cube is placed in a room with yellow light then the white may be mistaken for yellow.
+
+\subsubsection{Camera}
+%http://www1.idc.ac.il/toky/ImageProcAndroid-14/RubiksCube/Report.pdf
+More advanced implementations of Rubik's Cube state readers use cameras to take pictures of each face. Assumptions vary widely between systems, here are a few:
+\begin{itemize}
+\item \textbf{Fixing cube position} - We assume the position of where the cube appears in the camera frame is fixed. We can then make assumptions about which coordinate a specific sticker of the cube would lie in. This is not reliable if the cube does not lie perfectly within the specified boundaries.
+\item \textbf{Fixed predictable lighting conditions} -  We assume that the pictures taken of the cube are in predictable lighting conditions. This is so we can assume that colour values will always lie within specific boundaries. This is not robust if we take the cube into a different kind of lighting. E.g. if we assumed we would always have natural white light but we take the cube into a room with yellow light. 
+\item \textbf{Fixed cube distance} - As the distance between the camera and cube increases, the cube will appear smaller and it will be harder to differentiate distinct squares. Similar to fixing the cube position within the camera frame, if the cube is too far away, then the vision system will be unreliable.
+\end{itemize}
+The sections below show potential ways to work around these assumptions.
+
+\subsection{Object tracking}
+In order to combat assumptions made about a fixed cube position in the camera frame and fixed distance assumptions between the cube and the camera. 
+
+\subsubsection{Laplacian Operator}
+%http://docs.opencv.org/doc/tutorials/imgproc/imgtrans/laplace_operator/laplace_operator.html
+The Laplacian operator can be used to detect the edges of an image. If we are able to detect the edges of an object then we can begin to identify the object within the frame. 
+
+Let us take a grayscale image. Edges in an image usually share a particular property: A major shift in intensity of the pixels around the edges. The more of a difference we have with neighbouring pixels, the more likely we at an edge. 
+
+<ref laplace operator image from link>
+%http://www.valerus.com/wp-content/themes/valerus/images/home-banner-fade.png
+
+Suppose we wish to detect the edges of the image above. Let us reduce this problem into a 1 dimensional problem and first plot the intensities of each pixel within the drawn square.
+
+<insert graph from opencv>
+
+The diagram above shows that if we were to plot the intesities of pixels, \begin{math}f(t)\end{math}. Let us take the first derivative of the graph. The graph on the right shows the first deritive, \begin{math}f'(t)\end{math}, i.e. the change in pixel intensity. When the change in pixel intensity is at it's highest (peak in the graph), we assume that this is an edge.
+
+So how do we find peaks in the graph? We know at the peak of a curve, the gradient is 0. So if we take the second derivative, \begin{math}f''(t)\end{math} and look for values of t where \begin{math}f''(t) = 0\end{math}, we can identify the peaks of \begin{math}f'(t)\end{math}.
+
+More strictly, since we are working on a 2 dimensional image, in a 2 dimensional space, the laplacian operator is defined as:
+\begin{equation}
+Laplace(f) = \frac{\partial ^2f}{\partial x^2} + \frac{\partial ^2f}{\partial y^2}
+\end{equation}
+
+\subsection{Colour balancing}
+In order to combat the assumption made about predictable lighting, we can use colour balancing algorithms to neutralise any colour cast by coloured light on the cube. This will allow us to recognise colours independent of light source.
+
+\subsubsection{Gray World Assumption}
+%http://www.codeproject.com/Articles/653355/Color-Constancy-Gray-World-Algorithm
+The Gray World Assumption is a white balancing algorithm that assumes in a perfectly white balanced picture, the average colour is grey. That is, using the RGB colour scheme, the Red, Green and Blue values are all approximately equal. This essentially assumes that we have a good distribution of colours in the image.
+
+\paragraph{Estimation of illumination}
+This is the estimate of the colour casted by the incoming light. In it's simplist form, Gray World Assumption computes the average of each colour channel of the image. Let us assume we have an NxM pixel image. Let's further assume that pixels are represented using the RGB colour scheme.
+The average of any given colour channel c, can be computed by:
+\begin{equation}
+avg_c = \frac{\sum_{m=0}^{m=M-1} \sum_{n=0}^{n=N-1} pixel_c(m,n) }{M*N} 
+\end{equation}
+where \begin{math}pixel_c(m,n) \end{math} is the colour channel c value of \begin{math}pixel(m,n)\end{math}
+
+\paragraph{Using illumination estimate}
+Now that we have an average for each of the colour channels, \begin{math} avg_r, avg_g, avg_b \end{math}, we must work out how much we need to adjust each pixel to make them a more neutral colour.
+Again, in it's simplest form, the Gray World Assumption uses the average of all 3 channels form normalisation to calculate the coefficient of adjustment for each channel. Let us name the coefficient of adjust for channel c be \begin{math} S_c \end{math}
+\begin{equation}
+avg = (avg_r + avg_g + avg_b) / 3
+S_c = avg_c / avg
+\end{equation}
+
+We can now adjust each channel of each pixel:
+\\
+Let \begin{math}pixel_orig\end{math} be the original unadjusted pixel and \begin{math} pixel_balanced\end{math} be the colour balanced pixel
+\begin{equation}
+pixel_orig = (R_{orig}, G_{orig}, B_{orig})
+\end{equation}
+\begin{equation}
+pixel_balanced = (S_r * R_{orig}, S_g*G_{orig},S_b*B_{orig})
+\end{equation}
+
+\paragraph{Using p-norms}
+Although in it's simplist form, we use the average of all 3 channels in order to normalise. Another method of normalisation is to use p-norms in order to calculate \begin{math}avg\end{math}. A p-norm as \begin{math} avg \end{math} is defined as:
+\begin{equation}
+avg = (\sum_c |avg_c| ^ p)^\frac{1}{p}
+\end{equation}
+
+
+Below shows images of how each norm affects the colour balance.
+%http://www.codeproject.com/Articles/653355/Color-Constancy-Gray-World-Algorithm
+
+\section{Existing Robots}
+There are currently a few Rubik's cube solvers out there. Each of them have various advantages and disadvantages to their designs.
+
+\subsection{One Armed Solvers}
+\subsubsection{MindCuber}
+%http://robotsquare.com/wp-content/uploads/2013/12/mindcub3r_s.jpg
+%http://mindcuber.com
+\paragraph{Design}
+MindCuber is a single armed solver. The single arm is responsible for holding the cube in place whilst the lower platform rotates the D face of the cube. The single arm is also responsible for performing cube rotations. This robot can be built using an EV3 Lego Mindstorms set which gives it the advantage of being cheap to build. The limitations lie with it's design. Since there is only a single side can be turn at a time, the cube needs to be rotated everytime we wish to change the face we want to turn. This is extremely time consuming. The MindCuber uses a single RGB sensor to read each square individually.
+
+\paragraph{Algorithm}
+%http://shop.lego.com/en-GB/EV3-Intelligent-Brick-45500
+MindCuber is powered solely on the `EV3 Intelligent Brick' .With only 64 MB of RAM and ARM-9 processor, the method used for solving the cube uses a `block-building' method which is far from optimal. Optimal algorithms require significantly more processing power and RAM in order to find a solution within reasonable time.
+
+\subsection{Three Armed Solvers}
+%http://jpbrown.i8.com/cubesolver.html
+\subsubsection{JPBrown's CubeSolver}
+\paragraph{Design}
+JPBrown's CubeSolver was one of the first serious attempts to build a cube solving robot. The robot uses 3 arms built from Lego as shown in figure X. This allows it to move 3 indenpendent faces without cube rotations. JPBrown's clamping mechanism uses a complex gearing system which makes the face moves slow. The vision system is based from a webcam. The cube must be presented in a very specific area of the camera frame. The robot itself is powered by 2 RCX Intelligent Bricks and a PC. The PC is responsible for finding an solution and parsing the camera frames for the vision. The Bricks are responsible for robot movement.
+
+\paragraph{Algorithm}
+Since the CubeSolver has a PC at its' disposal, the algorithm used is Kociemba's Algorithm. This is because it will find a solution within a relatively short time and since the execution of moves is slow, the solution should be short.
+
+\subsection{Four Armed Solvers}
+\subsubsection{Cubestormer}
+CubeStormer was developed by David Gilday and Mike Dobson. Not much is known about how it's design since there is no official documentation. The robot is powered by an ARM CPU Smartphone and uses Kociemba's Algorithm. The Smartphone's camera is used for the vision aspect.
+
+\chapter{Design}
+In this chapter we detail and discuss the design of the system.
+\section{Overall Design}
+The system can be broken down into three components: 
+\begin{enumerate}
+\item \textbf{Algorithm} - The algorithm used to find a solution to the Rubik's cube.
+\item \textbf{Vision} - The method used in reading the state of the cube.
+\item \textbf{The Mechanics} - The mechanism used to physically solve the Rubik's cube.
+\end{enumerate}
+
+The system uses a Master-Slave configuration where the Smartphone acts as the master and the arms of the Robot. The sequence of events through solving any particular cube is as follows:
+\begin{enumerate}
+\item Take pictures of each side of the cube using the Smartphones camera
+\item Build the cube state
+\item Send the cube state from the Android Smartphone to the PC via WiFi 
+\item Compute the solution to the given cube state on the PC
+\item Send the solution from the PC back to the Android Smartphone
+\item Use the Smartphone to control each of the 4 arms of the robot to solve the cube
+\end{enumerate}
+
+<insert diagram>
+
+\subsection{Vision Design}
+The aim of the vision system is to be able to detect the position of the cube within the camera frame regardless of where the cube is placed as well as have robust colour detection. This will be coded in the form of an Android application to make use of an Android Smartphone camera.
+\\ \indent 
+In order to accomplish this, we will use a well known Open Source Computer Vision (OpenCV) library. OpenCV provides a myriad of tried and tested Computer Vision methods such as Canny Edge Detection. Laplacian Operators, Gaussian Blur,etc. The OpenCV library is available for Android which is perfect when coupled with the Android Smartphone. This will allow us to quickly build an app that can scan all the sides of the cube without having to worry about the deep technical details of individual Computer Vision methods. 
+
+\subsection{Algorithm Design}
+The search algorithm used to find a solution for the Rubik's cube will be run from a PC. We chose to use a PC so that we have more RAM and CPU power to find better solutions. The algorithm will be a mixture of Korf's and Kociemba's algorithm. Since Korf's algorithm does not guarantee that it can find a solution within a reasonable amount of time, a key aspect of this project will be to attempt to speed up Korf's algorithm as much as we can. Kociemba's algorithm will be used in cases where it is not possible for Korf's algorithm to return within a reasonable time (a `fall-back' if you will). To keep the coding language consistent with the vision aspect of the system, java was the language of choice. Additional advantages include: simple networking API to allow the Android Smartphone to communicate with the PC, platform independence and garbage collection. Garbage collection is particularly useful for complex algorithms that generate many search nodes. With so many aspect to the project, any way we can find to simplify the implementation is welcome.
+
+\subsection{The Robot Design}
+We decided on a Lego MindStorms robot for a number of reasons:
+\begin{itemize}
+\item \textbf{Availability} - The Department of Computing Robotics department already have several Mindstorm kits. This means we can build the robot without having to worry about resource limitations.
+\item \textbf{Flexibility} - A Lego system gives us flexibility. That is,  we can build almost any design without limitation.
+\end{itemize}
+There were a number of options available for the actual robot design. On one hand, a 1 armed robot would be fairly simple to implement and cheap to build. Since we had so many sets of Lego Mindstorms at our disposal, we could afford to have more than a single arm. A four armed robot was chosen over a three armed robot for a number of reasons including: 
+\begin{itemize}
+\item \textbf{Stability} - Having more arms allows us to grip the cube easier allowing for a more stable design. It also means we need less cube rotations. Cube rotations increases the accuracy drift so we want to minimise this.
+\item \textbf{Speed} - Having more arms means we don't have to rotate the whole cube as many times during a solve, less moves means fast solve times.
+\item \textbf{Simple} - Less cube rotations also reduces the complexity of the solve.
+\end{itemize}
+
+\chapter{Implementation}
+
+\section{Finding the best Algorithm}
+We have already seen in <REF SECTION existing robots> that most systems with enough RAM and CPU power will use Kociemba's algorithm. This is because even with the RAM and CPU power, Korf's Algorithm still has a branching factor of about 13 so it will not terminate within reasonable time. This chapter details
+
+\subsection{The Details}
+\subsubsection{Cube representation}
+\subsubsection{Sanity properties}
+\subsubsection{Move transition}
+\subsubsection{A First Attempt}
+\subsubsection{A Second Attempt}
+\subsubsection{Algorithm Implementation}
+\subsubsection{Heuristic generation}
+\subsubsection{Perfect Hash Function}
+\subsubsection{Factorial Numbering}
+\subsubsection{nCr Numbering}
+\subsubsection{Improvements}
+\subsubsection{Fringe}
+\subsubsection{Branching factor reduction}
+\subsubsection{Mutlithreaded}
+\subsubsection{Implementation details}
+\subsubsection{Nibble Array}
+
+\subsection{Why does everyone use Kociemba's?}
+\subsubsection{Facelet level}
+\subsubsection{Cubie level}
+\subsubsection{Coordinate level}
+\subsubsection{Complexity vs Korf's}
+\subsubsection{Symmetry reduction}
+\subsubsection{Optimal Kociemba's}
+
+\section{Vision System}
+Talk about vision system
+\subsection{Detecting the cube - what makes a rubiks cube a rubiks cube?}
+\subsubsection{Canny Edge Detection}
+\subsubsection{Blur, dilation, morphology}
+\subsubsection{Laplacian Transform}
+\subsubsection{Square prediction}
+\subsubsection{Previous attempts vs}
+
+\subsection{Recognising Colour}
+\subsubsection{RGB vs HSV}
+\subsubsection{Greyworld Assumption}
+\subsubsection{Norms}
+
+\section{Robot}
+\subsection{Why four arms?}
+\subsection{Hardware Design}
+\subsection{NXT vs BrickPi}
+
+\subsection{Software}
+\subsubsection{Lejos}
+\subsubsection{Bluetooth}
+\subsubsection{Communication protocol}
+\subsubsection{Synchronisation}
+\subsubsection{Master Slave}
+\subsection{Profiling}
+\subsubsection{Dynamic costing for Korf's}
+
+\section{Evaluation}
+
+Strengths and weaknesses
+\subsection{Algorithm speed}
+\subsection{Algorithm consistency}
+\subsection{Memory usage}
+\subsection{Branch factor}
+\subsection{Algorirthm solution length}
+\subsection{Speed of solution}
+\subsection{Vision accuracy}
+\subsection{VIsion limitations}
+\subsubsection{Lighting conditions - glare/darkness}
+\subsubsection{Scanning order}
+\subsection{Robot accuracy}
+\subsection{Robot limitations}
+\subsection{Robot TPS}
+
+\section{Future work}
+\section{Conclusion}
+
+
+\bibliographystyle{plain}
+\bibliography{references}
+http://www1.idc.ac.il/toky/ImageProcAndroid-14/RubiksCube/Report.pdf   vision
+http://w.astro.berkeley.edu/~converse/rubiks.php?id1=basics\&id2=notation
+\end{document}
+
+% check Lets for Let's

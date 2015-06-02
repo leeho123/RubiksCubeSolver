@@ -5,6 +5,7 @@ import com.carrotsearch.hppc.ByteDeque;
 import com.carrotsearch.hppc.IntArrayDeque;
 import com.carrotsearch.hppc.IntDeque;
 import com.carrotsearch.hppc.ObjectByteOpenHashMap;
+import com.carrotsearch.hppc.cursors.ByteCursor;
 import com.rubiks.lehoang.rubikssolver.CompactCube;
 import com.rubiks.lehoang.rubikssolver.Util;
 
@@ -12,6 +13,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -21,6 +23,7 @@ import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Deque;
+import java.util.Iterator;
 import java.util.Queue;
 import java.util.Random;
 import java.util.concurrent.Callable;
@@ -61,9 +64,19 @@ public class Korfs {
             return val & 0xFF;
         }
     }
-    public static String CORNERS_FILE_NAME= "corners.csv";
-    public static String FIRST_EDGE_FILE_NAME = "firstEdge.csv";
-    public static String SECOND_EDGE_FILE_NAME = "secondEdge.csv";
+
+    public static String CORNERS_FILE_MIN_MOVE = "corners.csv";
+    public static String FIRST_EDGE_MIN_MOVE = "firstEdge.csv";
+    public static String SECOND_EDGE_MIN_MOVE = "secondEdge.csv";
+
+    public static String CORNERS_FILE_OPT_ROBOT = "CornerFlipped.csv";
+    public static String FIRST_EDGE_OPT_ROBOT = "FirstEdgeFlipped.csv";
+    public static String SECOND_EDGE_OPT_ROBOT = "SecondEdgeFlipped.csv";
+
+    public static String CORNERS_FILE_NAME = CORNERS_FILE_MIN_MOVE;
+    public static String FIRST_EDGE_FILE_NAME = FIRST_EDGE_MIN_MOVE;
+    public static String SECOND_EDGE_FILE_NAME = SECOND_EDGE_MIN_MOVE;
+
     public static String CORNER_TRANSITION_NAME = "cornerTrans.csv";
 
     public static NibbleArray cornerArr;
@@ -75,6 +88,9 @@ public class Korfs {
                                     1,1,1,
                                     1,1,1,
                                     1,1,1};
+
+    public static int[][] moveCostFlipped = {{1, 1, 3, 1, 1, 3, 1, 1, 3, 1, 1, 3, 1, 1, 3, 1, 1, 3},
+                                             {3, 1, 1, 3, 1, 1, 3, 1, 1, 3, 1, 1, 3, 1, 1, 3, 1, 1}};
 
 
     static{
@@ -160,8 +176,10 @@ public class Korfs {
             result = search(cube, 0, bound, solution, cache, start, end);
             cache.clear();
             if(result == FOUND){
+                System.out.println("Found Something");
                 return giveSolution(solution);
             }else if(result == NOT_FOUND){
+                System.out.println("Found nothing");
                 return null;
             }else{
                 bound = result;
@@ -392,11 +410,15 @@ public class Korfs {
     private static int searchFringe(CompactCube cube, int g, Deque<CompactCube> later, IntDeque laterGs, Deque<ByteDeque> laterSolutions, int bound, ByteDeque solution,
                               SeenCache cache, int start, int end){
         int f = g + getH(cube);
-
+/*
         boolean isContained = cache.contains(cube, f);
         cache.add(new CompactCube(cube), f);
         if(isContained){
             return Integer.MAX_VALUE;
+        }
+*/
+        if(CompactCube.isSolved(cube)) {
+            return FOUND;
         }
 
         if(f > bound && f <= 20){
@@ -408,11 +430,6 @@ public class Korfs {
             return Integer.MAX_VALUE;
         }
 
-        if(CompactCube.isSolved(cube)) {
-            return FOUND;
-        }
-
-
         int min = Integer.MAX_VALUE;
         int t = 0;
 
@@ -421,8 +438,30 @@ public class Korfs {
 
         //Rule out stupid moves
         if(!solution.isEmpty()) {
-            notDone.clear(solution.getLast());
-            notDone.clear(CompactCube.INV_MOVES[solution.getLast()]);
+
+            Iterator<ByteCursor> backwardsIt = solution.descendingIterator();
+
+            int prev = (backwardsIt.next().value/3) * 3;
+            for(int i = 0; i < 3; i++){
+                notDone.clear(prev + i);
+            }
+
+            int val;
+
+            while(backwardsIt.hasNext()){
+                val = (backwardsIt.next().value/3) * 3;
+
+                //Test to see if move is on opposite face
+                if(val == ((((prev + 9)%18)))){
+                    //If it is then don't generate any moves for the opposite either
+                    for(int i = 0; i < 3; i++){
+                        notDone.clear(val + i);
+                    }
+                    prev = val;
+                }else{
+                    break;
+                }
+            }
         }
 
         for(int move = start; move < end; move++){
@@ -446,9 +485,118 @@ public class Korfs {
             solution.removeLast();
         }
         return min;
-
     }
+
+    /*
+
+    private static int searchFlipped(CompactCube cube, int g, int bound, ByteDeque solution, SeenCache cache, int start, int end) {
+        //System.out.println("I'm actually doing something");
+        if(Thread.currentThread().isInterrupted()){
+            System.out.println("Task Interrupted");
+            return NOT_FOUND;
+        }
+
+        if(CompactCube.isSolved(cube)){
+            return FOUND;
+        }
+
+        int h = getH(cube);
+        int f = g + h;
+
+        //boolean isContained = cache.contains(cube, f);
+        //cache.add(new CompactCube(cube), f);
+
+        //if(isContained){
+        //  return Integer.MAX_VALUE;
+        //}
+
+        if(f > bound){
+            //System.out.println("Exceeded bound");
+            return f;
+        }
+
+        int min = Integer.MAX_VALUE;
+        int t = 0;
+        BitSet notDone = new BitSet(CompactCube.NUMMOVES);
+        notDone.set(0, CompactCube.NUMMOVES);//Set all bits to 1
+
+        //Rule out stupid moves
+        if(!solution.isEmpty()) {
+
+            Iterator<ByteCursor> backwardsIt = solution.descendingIterator();
+
+            int prev = (backwardsIt.next().value/3) * 3;
+            for(int i = 0; i < 3; i++){
+                notDone.clear(prev + i);
+            }
+
+            int val;
+
+            while(backwardsIt.hasNext()){
+                val = (backwardsIt.next().value/3) * 3;
+
+                //Test to see if move is on opposite face
+                if(val == ((((prev + 9)%18)))){
+                    //If it is then don't generate any moves for the opposite either
+                    for(int i = 0; i < 3; i++){
+                        notDone.clear(val + i);
+                    }
+                    prev = val;
+                }else{
+                    break;
+                }
+            }
+
+        }
+
+        boolean prevFlipped = cube.isFlipped();
+
+        for(int move = start; move < end; move++){
+
+            //If we've already done this move
+            if(!notDone.get(move)){
+                //move = notDone.nextSetBit(0);
+                continue;
+            }
+            notDone.clear(move);
+
+            cube.move(move);
+
+            if((move/3)*3 == CompactCube.B || (move/3)*3 == CompactCube.F){
+                if(cube.isFlipped()){
+                    cube.setFlipped(false);
+                }
+            }
+
+            if((move/3)*3 == CompactCube.U || (move/3)*3 == CompactCube.D){
+                if(!cube.isFlipped()){
+                    cube.setFlipped(true);
+                }
+            }
+
+            solution.addLast((byte) move);
+
+            t = search(cube, g + moveCostFlipped[cube.isFlipped() ? 1 : 0][move], bound, solution, cache, 0, CompactCube.NUMMOVES);
+            if(t == FOUND){
+                return FOUND;
+            }
+            if(t == NOT_FOUND){
+                return NOT_FOUND;
+            }
+            if(t < min){
+                min = t;
+            }
+
+            cube.move(CompactCube.INV_MOVES[move]);
+            cube.setFlipped(prevFlipped);
+            //Take off the last thing added
+            solution.removeLast();
+        }
+        return min;
+    }*/
+
     private static Random rand = new Random();
+
 
     private static int search(CompactCube cube, int g, int bound, ByteDeque solution, SeenCache cache, int start, int end) {
         //System.out.println("I'm actually doing something");
@@ -456,7 +604,13 @@ public class Korfs {
             System.out.println("Task Interrupted");
             return NOT_FOUND;
         }
-        int f = g + getH(cube);
+
+        if(CompactCube.isSolved(cube)){
+            return FOUND;
+        }
+
+        int h = getH(cube);
+        int f = g + h;
 
         //boolean isContained = cache.contains(cube, f);
         //cache.add(new CompactCube(cube), f);
@@ -470,10 +624,6 @@ public class Korfs {
             return f;
         }
 
-        if(CompactCube.isSolved(cube)){
-            return FOUND;
-        }
-
         int min = Integer.MAX_VALUE;
         int t = 0;
         BitSet notDone = new BitSet(CompactCube.NUMMOVES);
@@ -481,15 +631,40 @@ public class Korfs {
 
         //Rule out stupid moves
         if(!solution.isEmpty()) {
-            notDone.clear(solution.getLast());
-            notDone.clear(CompactCube.INV_MOVES[solution.getLast()]);
+
+            Iterator<ByteCursor> backwardsIt = solution.descendingIterator();
+
+            int prev = (backwardsIt.next().value/3) * 3;
+            for(int i = 0; i < 3; i++){
+                notDone.clear(prev + i);
+            }
+
+            int val;
+
+            while(backwardsIt.hasNext()){
+                 val = (backwardsIt.next().value/3) * 3;
+
+                //Test to see if move is on opposite face
+                 if(val == ((((prev + 9)%18)))){
+                     //If it is then don't generate any moves for the opposite either
+                     for(int i = 0; i < 3; i++){
+                         notDone.clear(val + i);
+                     }
+                     prev = val;
+                 }else{
+                     break;
+                 }
+            }
+
         }
 
         /**for(int move = rand.nextInt(CompactCube.NUMMOVES);
                     !notDone.isEmpty();
                         move = rand.nextInt(CompactCube.NUMMOVES)){
          **/
+
         for(int move = start; move < end; move++){
+
             //If we've already done this move
             if(!notDone.get(move)){
                 //move = notDone.nextSetBit(0);
@@ -498,6 +673,7 @@ public class Korfs {
             notDone.clear(move);
 
             cube.move(move);
+
             solution.addLast((byte) move);
 
             t = search(cube, g + moveCost[move], bound, solution, cache, 0, CompactCube.NUMMOVES);
@@ -512,7 +688,6 @@ public class Korfs {
             }
 
             cube.move(CompactCube.INV_MOVES[move]);
-
             //Take off the last thing added
             solution.removeLast();
         }
@@ -550,13 +725,13 @@ public class Korfs {
 
         while(!workQueue.isEmpty()){
             state = workQueue.poll();
-            encoding = CompactCube.encodeCorners(state);
+            encoding = CompactCube.encodeCorners(state,8);
 
             for(int move = 0; move < CompactCube.NUMMOVES; move = move + 3){
 
 
                 CompactCube.moveCorners(move, state);
-                cornerEncoding = CompactCube.encodeCorners(state);
+                cornerEncoding = CompactCube.encodeCorners(state,8);
 
 
                 if( (moveTable[encoding][move/3] == 0 || moveTable[encoding][move/3] == -1) && cornerEncoding != 0){
@@ -618,26 +793,30 @@ public class Korfs {
         long usedMemory = 0;
         while(!workQueue.isEmpty()){
             state = workQueue.poll();
-            moveCount = states.getIndex(CompactCube.encodeCorners(state));
+            moveCount = states.getIndex(CompactCube.encodeCorners(state,8));
 
             for(int move = 0; move < CompactCube.NUMMOVES; move++){
                 CompactCube.moveCorners(move, state);
 
-                cornerEncoding = CompactCube.encodeCorners(state);
+                cornerEncoding = CompactCube.encodeCorners(state,8);
 
                 //Does not exist already and the encoding is not solved
-                if(states.getIndex(cornerEncoding) == 0 && cornerEncoding != 0){
-                    count++;
-                    if(count % 1000000 == 0){
-                        try {
-                            Thread.sleep(5000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                        System.gc();
+                if((states.getIndex(cornerEncoding) == 0 ||
+                        states.getIndex(cornerEncoding) > (moveCount + moveCost[move]))&&
+                        cornerEncoding != 0){
+                    if(states.getIndex(cornerEncoding) == 0) {
+                        count++;
+                        if (count % 1000000 == 0) {
+                            try {
+                                Thread.sleep(5000);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                            System.gc();
 
-                        usedMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-                        System.out.println(count + " of 88179840 "+ "Used mem: "+ usedMemory);
+                            usedMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+                            System.out.println(count + " of 88179840 " + "Used mem: " + usedMemory);
+                        }
                     }
                     workQueue.add(Arrays.copyOf(state, state.length));
 
@@ -655,12 +834,84 @@ public class Korfs {
         writer.close();
     }
 
+    public static void generateCornerHeuristics(File file) throws IOException {
+        Queue<byte[]> workQueue = new ArrayDeque<byte[]>();
+
+        //For storing all state move counts of corners. Only need 1 byte since
+        //move count will never exceed 11 and byte is smallest unit we can have
+
+        NibbleArray states = new NibbleArray(CompactCube.NO_CORNER_ENCODINGS);
+
+        byte[] state = {0,1,2,3,4,5,6,7,0};
+        workQueue.add(state);
+        int count = 1;
+        int moveCount = 0;
+        int cornerEncoding = 0;
+        long usedMemory = 0;
+        byte prevState;
+
+        while(!workQueue.isEmpty()){
+            state = workQueue.poll();
+            moveCount = states.getIndex(CompactCube.encodeCorners(state, 8));
+
+            prevState = state[state.length-1];
+            for(int move = 0; move < CompactCube.NUMMOVES; move++){
+                CompactCube.moveCorners(move, state);
+
+                if((move/3)*3 == CompactCube.B || (move/3)*3 == CompactCube.F){
+                    if(state[state.length-1] == 1){
+                        state[state.length-1] = 0;
+                    }
+                }
+
+                if((move/3)*3 == CompactCube.U || (move/3)*3 == CompactCube.D){
+                    if(state[state.length-1] == 0){
+                        state[state.length-1] = 1;
+                    }
+                }
+                cornerEncoding = CompactCube.encodeCorners(state, 8);
+
+                //Does not exist already and the encoding is not solved
+                if((states.getIndex(cornerEncoding) == 0 ||
+                        states.getIndex(cornerEncoding) > (moveCount + moveCostFlipped[state[state.length-1]][move]))
+                        && cornerEncoding != 0){
+
+                    if(states.getIndex(cornerEncoding) == 0) {
+                        count++;
+                        if (count % 1000000 == 0) {
+                            try {
+                                Thread.sleep(5000);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                            System.gc();
+
+                            usedMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+                            System.out.println(count + " of 88179840 " + "Used mem: " + usedMemory);
+                        }
+                    }
+                    workQueue.add(Arrays.copyOf(state, state.length));
+                    states.setIndex(cornerEncoding, (moveCount + moveCostFlipped[state[state.length-1]][move]));
+                }
+                CompactCube.moveCorners(CompactCube.INV_MOVES[move], state);
+                state[state.length-1] = prevState;
+            }
+        }
+
+        System.out.println("Done! Writing to file...");
+        Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file)));
+        for(int i = 0; i < states.length; i++){
+            writer.write(Integer.toString(states.getIndex(i)) + '\n');
+        }
+        writer.close();
+    }
+
     public static void generateEdgeHeuristics2(File firstFile, File secondFile) throws IOException {
         NibbleArray firstStates = new NibbleArray(CompactCube.NO_EDGE_ENCODINGS);
         NibbleArray secondStates = new NibbleArray(CompactCube.NO_EDGE_ENCODINGS);
 
         Queue<byte[]> workQueue = new ArrayDeque<byte[]>();
-        byte[] state = {0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22};
+        byte[] state = {0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22,0};
 
         workQueue.add(state);
 
@@ -673,14 +924,26 @@ public class Korfs {
         long usedMemory = 0;
         boolean add = false;
         boolean runGC = false;
+        byte prevState;
 
         while(!workQueue.isEmpty()){
             state = workQueue.poll();
             firstMoveCount = firstStates.getIndex(CompactCube.encodeFirst(state));
             secondMoveCount = secondStates.getIndex(CompactCube.encodeSecond(state));
+            prevState = state[state.length-1];
 
             for(int move = 0; move < CompactCube.NUMMOVES; move++){
+                if((move/3)*3 == CompactCube.B || (move/3)*3 == CompactCube.F){
+                    if(state[state.length-1] == 1){
+                        state[state.length-1] = 0;
+                    }
+                }
 
+                if((move/3)*3 == CompactCube.U || (move/3)*3 == CompactCube.D){
+                    if(state[state.length-1] == 0){
+                        state[state.length-1] = 1;
+                    }
+                }
                 CompactCube.moveEdges(move, state);
 
                 firstEdgeEncoding = CompactCube.encodeFirst(state);
@@ -690,29 +953,34 @@ public class Korfs {
                  * If the state has not been seen before or we have a move count lower than what
                  * we had before then replace.
                  */
-                if((firstStates.getIndex(firstEdgeEncoding) > (firstMoveCount + moveCost[move]) ||
+                if((firstStates.getIndex(firstEdgeEncoding) > (firstMoveCount + moveCostFlipped[state[state.length-1]][move]) ||
                         firstStates.getIndex(firstEdgeEncoding) == 0)
                         && firstEdgeEncoding != CompactCube.firstEdgeSolved
                         ){
                     add = true;
-                    firstElemCount++;
-                    if(firstElemCount % 1000000 == 0){
-                        usedMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-                        System.out.println("First:" + firstElemCount + " of 42577920 "+ "Used mem: "+ usedMemory);
+
+                    if( firstStates.getIndex(firstEdgeEncoding) == 0) {
+                        firstElemCount++;
+                        if (firstElemCount % 1000000 == 0) {
+                            usedMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+                            System.out.println("First:" + firstElemCount + " of 42577920 " + "Used mem: " + usedMemory);
+                        }
                     }
-                    firstStates.setIndex(firstEdgeEncoding, (firstMoveCount + moveCost[move]));
+                    firstStates.setIndex(firstEdgeEncoding, (firstMoveCount + moveCostFlipped[state[state.length-1]][move]));
                 }
 
-                if((secondStates.getIndex(secondEdgeEncoding) > (secondMoveCount + moveCost[move]) ||
+                if((secondStates.getIndex(secondEdgeEncoding) > (secondMoveCount + moveCostFlipped[state[state.length-1]][move]) ||
                     secondStates.getIndex(secondEdgeEncoding) == 0) &&
                            secondEdgeEncoding != CompactCube.secondEdgeSolved){
                     add = true;
-                    secondElemCount++;
-                    if(secondElemCount % 1000000 == 0) {
-                        usedMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-                        System.out.println("Second:" + secondElemCount + " of 42577920 " + "Used mem: " + usedMemory);
+                    if(secondStates.getIndex(secondEdgeEncoding) == 0) {
+                        secondElemCount++;
+                        if (secondElemCount % 1000000 == 0) {
+                            usedMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+                            System.out.println("Second:" + secondElemCount + " of 42577920 " + "Used mem: " + usedMemory);
+                        }
                     }
-                    secondStates.setIndex(secondEdgeEncoding, (secondMoveCount + moveCost[move]));
+                    secondStates.setIndex(secondEdgeEncoding, (secondMoveCount + moveCostFlipped[state[state.length-1]][move]));
                 }
                 /// Add state to workqueue if anything new was seen
                 if(add){
@@ -732,6 +1000,8 @@ public class Korfs {
 
                 //Move back
                 CompactCube.moveEdges(CompactCube.INV_MOVES[move], state);
+                state[state.length-1] = prevState;
+
             }
         }
         System.out.println("Done! Writing to file...");
@@ -750,13 +1020,12 @@ public class Korfs {
 
 
     public static void main(String[] args) throws IOException {
-        //File file = new File(Korfs.CORNERS_FILE_NAME);
-        //Korfs.generateCornerHeuristics2(file);
+        File file = new File(CORNERS_FILE_NAME);
+        Korfs.generateCornerHeuristics2(file);
 
-
-        File file1 = new File(Korfs.FIRST_EDGE_FILE_NAME);
-        File file2 = new File(Korfs.SECOND_EDGE_FILE_NAME);
-        Korfs.generateEdgeHeuristics2(file1, file2);
+        //File file1 = new File("FirstEdgeFlipped.csv");
+        //File file2 = new File("SecondEdgeFlipped.csv");
+        //Korfs.generateEdgeHeuristics2(file1, file2);
 
 
         //File transFile = new File(Korfs.CORNER_TRANSITION_NAME);
