@@ -438,7 +438,6 @@ public class CompactCube {
         edges[9] = edgeTransitions[move][edges[9]];
         edges[10] = edgeTransitions[move][edges[10]];
         edges[11] = edgeTransitions[move][edges[11]];
-
     }
 
     public static void moveEdges(int move, byte[] edges){
