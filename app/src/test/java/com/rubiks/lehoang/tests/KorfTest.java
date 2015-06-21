@@ -1,6 +1,6 @@
 package com.rubiks.lehoang.tests;
 
-import com.rubiks.lehoang.rubikssolver.CompactCube;
+import com.rubiks.lehoang.rubikssolver.Cube.Cube;
 import com.rubiks.lehoang.rubikssolver.Korfs.Korfs;
 
 import junit.framework.Assert;
@@ -62,10 +62,10 @@ public class KorfTest extends TestCase {
 
 
     public void testKorfSearchThreeMoveSolution() throws Exception{
-        CompactCube cube = new CompactCube();
-        cube.move(CompactCube.R);
-        cube.move(CompactCube.U);
-        cube.move(CompactCube.RPRIME);
+        Cube cube = new Cube();
+        cube.move(Cube.R);
+        cube.move(Cube.U);
+        cube.move(Cube.RPRIME);
 
         String solution = Korfs.idaStarKorfs(5, cube);
 
@@ -73,29 +73,29 @@ public class KorfTest extends TestCase {
     }
 
     public void testKorfSearchFiveMoveSolution() throws Exception{
-        CompactCube cube = new CompactCube();
+        Cube cube = new Cube();
 
-        cube.move(CompactCube.R);
-        cube.move(CompactCube.B);
-        cube.move(CompactCube.L);
-        cube.move(CompactCube.U);
-        cube.move(CompactCube.D);
+        cube.move(Cube.R);
+        cube.move(Cube.B);
+        cube.move(Cube.L);
+        cube.move(Cube.U);
+        cube.move(Cube.D);
 
         String solution = Korfs.idaStarKorfs(20, cube);
         Assert.assertEquals("U'D'L'B'R'", solution);
     }
 
     public void testKorfSearchSevenMoveSolution() throws Exception{
-        CompactCube cube = new CompactCube();
+        Cube cube = new Cube();
 
-        cube.move(CompactCube.R);
-        cube.move(CompactCube.B);
-        cube.move(CompactCube.L);
-        cube.move(CompactCube.U);
-        cube.move(CompactCube.D);
-        cube.move(CompactCube.RPRIME);
-        cube.move(CompactCube.U);
-        cube.move(CompactCube.LPRIME);
+        cube.move(Cube.R);
+        cube.move(Cube.B);
+        cube.move(Cube.L);
+        cube.move(Cube.U);
+        cube.move(Cube.D);
+        cube.move(Cube.RPRIME);
+        cube.move(Cube.U);
+        cube.move(Cube.LPRIME);
 
         String solution = Korfs.idaStarKorfs(20, cube);
 
@@ -104,19 +104,19 @@ public class KorfTest extends TestCase {
 
 
     public void testKorfSearch10MoveSolution(){
-        CompactCube cube = new CompactCube();
+        Cube cube = new Cube();
 
-        cube.move(CompactCube.R);
-        cube.move(CompactCube.B);
-        cube.move(CompactCube.L);
-        cube.move(CompactCube.U);
-        cube.move(CompactCube.D);
-        cube.move(CompactCube.RPRIME);
-        cube.move(CompactCube.U);
-        cube.move(CompactCube.LPRIME);
-        cube.move(CompactCube.F);
-        cube.move(CompactCube.D);
-        cube.move(CompactCube.RPRIME);
+        cube.move(Cube.R);
+        cube.move(Cube.B);
+        cube.move(Cube.L);
+        cube.move(Cube.U);
+        cube.move(Cube.D);
+        cube.move(Cube.RPRIME);
+        cube.move(Cube.U);
+        cube.move(Cube.LPRIME);
+        cube.move(Cube.F);
+        cube.move(Cube.D);
+        cube.move(Cube.RPRIME);
 
 
         String solution = Korfs.idaStarKorfs(20, cube);
@@ -124,45 +124,45 @@ public class KorfTest extends TestCase {
     }
 
     public void testKorfSearch12MoveSolution(){
-        CompactCube cube = new CompactCube();
+        Cube cube = new Cube();
 
 
-        cube.move(CompactCube.DPRIME);
-        cube.move(CompactCube.FPRIME);
-        cube.move(CompactCube.R);
-        cube.move(CompactCube.B);
-        cube.move(CompactCube.L);
-        cube.move(CompactCube.U);
-        cube.move(CompactCube.D);
-        cube.move(CompactCube.RPRIME);
-        cube.move(CompactCube.U);
-        cube.move(CompactCube.LPRIME);
-        cube.move(CompactCube.F);
-        cube.move(CompactCube.D);
-        cube.move(CompactCube.RPRIME);
+        cube.move(Cube.DPRIME);
+        cube.move(Cube.FPRIME);
+        cube.move(Cube.R);
+        cube.move(Cube.B);
+        cube.move(Cube.L);
+        cube.move(Cube.U);
+        cube.move(Cube.D);
+        cube.move(Cube.RPRIME);
+        cube.move(Cube.U);
+        cube.move(Cube.LPRIME);
+        cube.move(Cube.F);
+        cube.move(Cube.D);
+        cube.move(Cube.RPRIME);
 
         String solution = Korfs.idaStarKorfs(20, cube);
         Assert.assertEquals("RD'F'LU'RU'D'L'B'R'FD", solution);
     }
 
     public void testKorfSearch15MoveSolution(){
-        CompactCube cube = new CompactCube();
+        Cube cube = new Cube();
 
 
-        cube.move(CompactCube.R);
-        cube.move(CompactCube.B);
-        cube.move(CompactCube.L);
-        cube.move(CompactCube.U);
-        cube.move(CompactCube.D);
-        cube.move(CompactCube.RPRIME);
-        cube.move(CompactCube.U);
-        cube.move(CompactCube.LPRIME);
-        cube.move(CompactCube.F);
-        cube.move(CompactCube.D);
-        cube.move(CompactCube.RPRIME);
-        cube.move(CompactCube.F);
-        cube.move(CompactCube.UPRIME);
-        cube.move(CompactCube.B2);
+        cube.move(Cube.R);
+        cube.move(Cube.B);
+        cube.move(Cube.L);
+        cube.move(Cube.U);
+        cube.move(Cube.D);
+        cube.move(Cube.RPRIME);
+        cube.move(Cube.U);
+        cube.move(Cube.LPRIME);
+        cube.move(Cube.F);
+        cube.move(Cube.D);
+        cube.move(Cube.RPRIME);
+        cube.move(Cube.F);
+        cube.move(Cube.UPRIME);
+        cube.move(Cube.B2);
 
 
 
@@ -171,117 +171,159 @@ public class KorfTest extends TestCase {
     }
 
     public void testKorfSearch17MoveSolution(){
-        CompactCube cube = new CompactCube();
+        Cube cube = new Cube();
 
-        cube.move(CompactCube.R);
-        cube.move(CompactCube.B);
-        cube.move(CompactCube.L);
-        cube.move(CompactCube.U);
-        cube.move(CompactCube.D);
-        cube.move(CompactCube.RPRIME);
-        cube.move(CompactCube.U);
-        cube.move(CompactCube.LPRIME);
-        cube.move(CompactCube.F);
-        cube.move(CompactCube.D);
-        cube.move(CompactCube.RPRIME);
-        cube.move(CompactCube.F);
-        cube.move(CompactCube.UPRIME);
-        cube.move(CompactCube.B2);
-        cube.move(CompactCube.RPRIME);
-        cube.move(CompactCube.F);
+        cube.move(Cube.R);
+        cube.move(Cube.B);
+        cube.move(Cube.L);
+        cube.move(Cube.U);
+        cube.move(Cube.D);
+        cube.move(Cube.RPRIME);
+        cube.move(Cube.U);
+        cube.move(Cube.LPRIME);
+        cube.move(Cube.F);
+        cube.move(Cube.D);
+        cube.move(Cube.RPRIME);
+        cube.move(Cube.F);
+        cube.move(Cube.UPRIME);
+        cube.move(Cube.B2);
+        cube.move(Cube.RPRIME);
+        cube.move(Cube.F);
 
         String solution = Korfs.idaStarKorfs(20, cube);
         Assert.assertEquals("F'RB2UF'RD'F'LU'RU'D'L'B'R'", solution);
     }
 
     public void testMultiThreadedKorfSearch12Moves() throws ExecutionException, InterruptedException {
-        CompactCube cube = new CompactCube();
+        Cube cube = new Cube();
 
 
-        cube.move(CompactCube.DPRIME);
-        cube.move(CompactCube.FPRIME);
-        cube.move(CompactCube.R);
-        cube.move(CompactCube.B);
-        cube.move(CompactCube.L);
-        cube.move(CompactCube.U);
-        cube.move(CompactCube.D);
-        cube.move(CompactCube.RPRIME);
-        cube.move(CompactCube.U);
-        cube.move(CompactCube.LPRIME);
-        cube.move(CompactCube.F);
-        cube.move(CompactCube.D);
-        cube.move(CompactCube.RPRIME);
+        cube.move(Cube.DPRIME);
+        cube.move(Cube.FPRIME);
+        cube.move(Cube.R);
+        cube.move(Cube.B);
+        cube.move(Cube.L);
+        cube.move(Cube.U);
+        cube.move(Cube.D);
+        cube.move(Cube.RPRIME);
+        cube.move(Cube.U);
+        cube.move(Cube.LPRIME);
+        cube.move(Cube.F);
+        cube.move(Cube.D);
+        cube.move(Cube.RPRIME);
 
         String solution = new Korfs().idaStarMultiKorfs(20, cube);
         Assert.assertEquals("RD'F'LU'RU'D'L'B'R'FD", solution);
     }
 
     public void testMultiThreadedKorfSearch15Moves() throws ExecutionException, InterruptedException {
-        CompactCube cube = new CompactCube();
+        Cube cube = new Cube();
 
 
-        cube.move(CompactCube.R);
-        cube.move(CompactCube.B);
-        cube.move(CompactCube.L);
-        cube.move(CompactCube.U);
-        cube.move(CompactCube.D);
-        cube.move(CompactCube.RPRIME);
-        cube.move(CompactCube.U);
-        cube.move(CompactCube.LPRIME);
-        cube.move(CompactCube.F);
-        cube.move(CompactCube.D);
-        cube.move(CompactCube.RPRIME);
-        cube.move(CompactCube.F);
-        cube.move(CompactCube.UPRIME);
-        cube.move(CompactCube.B2);
+        cube.move(Cube.R);
+        cube.move(Cube.B);
+        cube.move(Cube.L);
+        cube.move(Cube.U);
+        cube.move(Cube.D);
+        cube.move(Cube.RPRIME);
+        cube.move(Cube.U);
+        cube.move(Cube.LPRIME);
+        cube.move(Cube.F);
+        cube.move(Cube.D);
+        cube.move(Cube.RPRIME);
+        cube.move(Cube.F);
+        cube.move(Cube.UPRIME);
+        cube.move(Cube.B2);
 
         String solution = new Korfs().idaStarMultiKorfs(20, cube);
         Assert.assertEquals("B2UF'RD'F'LU'RU'D'L'B'R'", solution);
     }
 
     public void testFringeSearch13Moves(){
-        CompactCube cube = new CompactCube();
+        Cube cube = new Cube();
 
 
-        cube.move(CompactCube.DPRIME);
-        cube.move(CompactCube.FPRIME);
-        cube.move(CompactCube.R);
-        cube.move(CompactCube.B);
-        cube.move(CompactCube.L);
-        cube.move(CompactCube.U);
-        cube.move(CompactCube.D);
-        cube.move(CompactCube.RPRIME);
-        cube.move(CompactCube.U);
-        cube.move(CompactCube.LPRIME);
-        cube.move(CompactCube.F);
-        cube.move(CompactCube.D);
-        cube.move(CompactCube.RPRIME);
+        cube.move(Cube.DPRIME);
+        cube.move(Cube.FPRIME);
+        cube.move(Cube.R);
+        cube.move(Cube.B);
+        cube.move(Cube.L);
+        cube.move(Cube.U);
+        cube.move(Cube.D);
+        cube.move(Cube.RPRIME);
+        cube.move(Cube.U);
+        cube.move(Cube.LPRIME);
+        cube.move(Cube.F);
+        cube.move(Cube.D);
+        cube.move(Cube.RPRIME);
 
         String solution = Korfs.fringeSearchKorfs(20, cube);
         Assert.assertEquals("RD'F'LU'RU'D'L'B'R'FD", solution);
     }
 
     public void testFringeSearch14Moves(){
-        CompactCube cube = new CompactCube();
+        Cube cube = new Cube();
 
 
-        cube.move(CompactCube.R);
-        cube.move(CompactCube.B);
-        cube.move(CompactCube.L);
-        cube.move(CompactCube.U);
-        cube.move(CompactCube.D);
-        cube.move(CompactCube.RPRIME);
-        cube.move(CompactCube.U);
-        cube.move(CompactCube.LPRIME);
-        cube.move(CompactCube.F);
-        cube.move(CompactCube.D);
-        cube.move(CompactCube.RPRIME);
-        cube.move(CompactCube.F);
-        cube.move(CompactCube.UPRIME);
-        cube.move(CompactCube.B2);
+        cube.move(Cube.R);
+        cube.move(Cube.B);
+        cube.move(Cube.L);
+        cube.move(Cube.U);
+        cube.move(Cube.D);
+        cube.move(Cube.RPRIME);
+        cube.move(Cube.U);
+        cube.move(Cube.LPRIME);
+        cube.move(Cube.F);
+        cube.move(Cube.D);
+        cube.move(Cube.RPRIME);
+        cube.move(Cube.F);
+        cube.move(Cube.UPRIME);
+        cube.move(Cube.B2);
 
         String solution = Korfs.fringeSearchKorfs(20, cube);
         Assert.assertEquals("B2UF'RD'F'LU'RU'D'L'B'R'", solution);
 
+    }
+
+    String solution = null;
+
+    public void testCancelTest() throws ExecutionException, InterruptedException {
+        final Cube cube = new Cube();
+
+        cube.move(Cube.R);
+        cube.move(Cube.B);
+        cube.move(Cube.L);
+        cube.move(Cube.U);
+        cube.move(Cube.D);
+        cube.move(Cube.RPRIME);
+        cube.move(Cube.U);
+        cube.move(Cube.LPRIME);
+        cube.move(Cube.F);
+        cube.move(Cube.D);
+        cube.move(Cube.RPRIME);
+        cube.move(Cube.F);
+        cube.move(Cube.UPRIME);
+        cube.move(Cube.B2);
+        final Korfs korfs = new Korfs();
+
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    solution = korfs.idaStarMultiKorfs(20, cube);
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        thread.start();
+        Thread.sleep(5000);
+        korfs.cancelMulti();
+
+        if(solution == null){
+            System.out.println("HOORAY");
+        }
     }
 }

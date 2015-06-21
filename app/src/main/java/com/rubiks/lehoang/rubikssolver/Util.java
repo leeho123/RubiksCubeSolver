@@ -1,18 +1,18 @@
 package com.rubiks.lehoang.rubikssolver;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.util.Log;
 
+
+import com.rubiks.lehoang.rubikssolver.Cube.Colour;
+import com.rubiks.lehoang.rubikssolver.Cube.OldCube;
 
 import org.kociemba.twophase.Search;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -70,20 +70,20 @@ public class Util {
         }
     }
 
-    public static Map<Colour, String> getColourFaceMap(Cube cube){
+    public static Map<Colour, String> getColourFaceMap(OldCube cube){
         Map<Colour, String> colourToFace = new HashMap<Colour, String>();
 
-        colourToFace.put(cube.getFace(Cube.BACK).getFaceColour(),"B");
-        colourToFace.put(cube.getFace(Cube.FRONT).getFaceColour(),"F");
-        colourToFace.put(cube.getFace(Cube.RIGHT).getFaceColour(),"R");
-        colourToFace.put(cube.getFace(Cube.LEFT).getFaceColour(),"L");
-        colourToFace.put(cube.getFace(Cube.TOP).getFaceColour(),"U");
-        colourToFace.put(cube.getFace(Cube.BOTTOM).getFaceColour(),"D");
+        colourToFace.put(cube.getFace(OldCube.BACK).getFaceColour(),"B");
+        colourToFace.put(cube.getFace(OldCube.FRONT).getFaceColour(),"F");
+        colourToFace.put(cube.getFace(OldCube.RIGHT).getFaceColour(),"R");
+        colourToFace.put(cube.getFace(OldCube.LEFT).getFaceColour(),"L");
+        colourToFace.put(cube.getFace(OldCube.TOP).getFaceColour(),"U");
+        colourToFace.put(cube.getFace(OldCube.BOTTOM).getFaceColour(),"D");
 
         return colourToFace;
     }
 
-    public static String myCubeToKociemba(Cube cube){
+    public static String myCubeToKociemba(OldCube cube){
 
         StringBuilder kociemba = new StringBuilder();
         Map<Colour, String> colourToFace = getColourFaceMap(cube);
@@ -92,8 +92,8 @@ public class Util {
          * Face[] faces = {top, right, front, bottom, left, back};
          */
         int count = 0;
-        for(Cube.Face face : cube){
-            Cube.Face conv = face;
+        for(OldCube.Face face : cube){
+            OldCube.Face conv = face;
 
             // Odd faces need to be flipped
             if(count % 2 == 1) {
@@ -161,7 +161,7 @@ public class Util {
         return builder.toString().trim();
     }
 
-    public static String solveCubeUsingKociemba(Cube cube){
+    public static String solveCubeUsingKociemba(OldCube cube){
         int maxDepth = 24, maxTime = 5;
         boolean useSeparator = false;
         String setup = Util.myCubeToKociemba(cube);
@@ -190,4 +190,35 @@ public class Util {
             arr[1] = temp;
         }
     }
+    public static int countMoves(String sequence){
+        int sum = 0;
+        for(int i = 0; i < sequence.length(); i++){
+            switch (sequence.charAt(i)){
+                case 'R':
+                    sum++;
+                    break;
+                case 'F':
+                    sum++;
+                    break;
+                case 'L':
+                    sum++;
+                    break;
+                case 'U':
+                    sum++;
+                    break;
+                case 'D':
+                    sum++;
+                    break;
+                case 'B':
+                    sum++;
+                    break;
+                default:
+                    System.out.println(sequence.charAt(i));
+            }
+        }
+        return sum;
+    }
+
+
+
 }

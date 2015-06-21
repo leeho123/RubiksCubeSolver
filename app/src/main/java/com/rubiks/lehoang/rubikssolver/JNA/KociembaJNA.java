@@ -10,7 +10,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Created by LeHoang on 21/04/2015.
+ * Created by LeHoang on 21/04/2015. Trying Kociemba's C implementation
  */
 public class KociembaJNA{
     public interface Koc extends Library {

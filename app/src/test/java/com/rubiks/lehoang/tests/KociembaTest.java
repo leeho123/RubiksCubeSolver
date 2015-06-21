@@ -1,7 +1,7 @@
 package com.rubiks.lehoang.tests;
 
-import com.rubiks.lehoang.rubikssolver.CompactCube;
-import com.rubiks.lehoang.rubikssolver.Cube;
+import com.rubiks.lehoang.rubikssolver.Cube.Cube;
+import com.rubiks.lehoang.rubikssolver.Cube.OldCube;
 
 import com.rubiks.lehoang.rubikssolver.JNA.KociembaJNA;
 import com.rubiks.lehoang.rubikssolver.Util;
@@ -12,7 +12,6 @@ import junit.framework.TestCase;
 import org.kociemba.twophase.Search;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.StringReader;
 
 /**
@@ -75,7 +74,7 @@ public class KociembaTest extends TestCase {
                         "Left\nR R R\nW W W\nW W W\n"+
                         "Back\nW W W\nO O O\nO O O\n";
 
-        Cube cube = new Cube(new BufferedReader(new StringReader(config)));
+        OldCube cube = new OldCube(new BufferedReader(new StringReader(config)));
 
         String solution = Util.solveCubeUsingKociemba(cube);
         cube.performSequence(solution);
@@ -92,7 +91,7 @@ public class KociembaTest extends TestCase {
                         "Left\nR R G\nW W W\nW W W\n"+
                         "Back\nW W O\nO O O\nO O O\n";
 
-        Cube cube = new Cube(new BufferedReader(new StringReader(config)));
+        OldCube cube = new OldCube(new BufferedReader(new StringReader(config)));
 
         String solution = Util.solveCubeUsingKociemba(cube);
         cube.performSequence(solution);
@@ -107,7 +106,7 @@ public class KociembaTest extends TestCase {
                         "Right\nR B G\nR Y Y\nR B Y\n"+
                         "Left\nR O G\nR W O\nO W B\n"+
                         "Back\nW G W\nW O G\nW Y B\n";
-        Cube cube = new Cube(new BufferedReader(new StringReader(config)));
+        OldCube cube = new OldCube(new BufferedReader(new StringReader(config)));
 
         String solution = Util.solveCubeUsingKociemba(cube);
         cube.performSequence(solution);
@@ -117,26 +116,26 @@ public class KociembaTest extends TestCase {
     }
 
     public void testKociembaSearch17MoveSolution(){
-        CompactCube cube = new CompactCube();
+        Cube cube = new Cube();
 
-        cube.move(CompactCube.R);
-        cube.move(CompactCube.B);
-        cube.move(CompactCube.L);
-        cube.move(CompactCube.U);
-        cube.move(CompactCube.D);
-        cube.move(CompactCube.RPRIME);
-        cube.move(CompactCube.U);
-        cube.move(CompactCube.LPRIME);
-        cube.move(CompactCube.F);
-        cube.move(CompactCube.D);
-        cube.move(CompactCube.RPRIME);
-        cube.move(CompactCube.F);
-        cube.move(CompactCube.UPRIME);
-        cube.move(CompactCube.B2);
-        cube.move(CompactCube.RPRIME);
-        cube.move(CompactCube.F);
+        cube.move(Cube.R);
+        cube.move(Cube.B);
+        cube.move(Cube.L);
+        cube.move(Cube.U);
+        cube.move(Cube.D);
+        cube.move(Cube.RPRIME);
+        cube.move(Cube.U);
+        cube.move(Cube.LPRIME);
+        cube.move(Cube.F);
+        cube.move(Cube.D);
+        cube.move(Cube.RPRIME);
+        cube.move(Cube.F);
+        cube.move(Cube.UPRIME);
+        cube.move(Cube.B2);
+        cube.move(Cube.RPRIME);
+        cube.move(Cube.F);
 
-        String koc = CompactCube.toKociemba(cube);
+        String koc = Cube.toKociemba(cube);
 
         System.out.println("Doing koc");
         String result = Search.solution(koc, 30, 5, false);
@@ -148,9 +147,9 @@ public class KociembaTest extends TestCase {
     public void testKociembaSearch(){
         String state = "UDRFUBULLFLBURDRDDFFDFFLBBFUUDRDRRRLRULRLDDFLUBFLBUBBB";
 
-        CompactCube cube = new CompactCube(state);
+        Cube cube = new Cube(state);
 
-        String koc = CompactCube.toKociemba(cube);
+        String koc = Cube.toKociemba(cube);
 
         String result = Search.solution(koc, 30, 5, false);
 
@@ -162,10 +161,10 @@ public class KociembaTest extends TestCase {
 
 
     public void setupConfig(String myCube, String expectedK){
-        Cube cube = null;
+        OldCube cube = null;
         String actual = null;
         try {
-            cube = new Cube(new BufferedReader(new StringReader(myCube)));
+            cube = new OldCube(new BufferedReader(new StringReader(myCube)));
             actual = Util.myCubeToKociemba(cube);
 
 
